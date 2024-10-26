@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "machine.h"
 
-struct Machine machine;
+struct Machine um;
 
 static Byte main_read()
 {
@@ -21,9 +21,7 @@ static void main_write(Byte value)
 
 int main()
 {
-    machine.read = main_read;
-    machine.write = main_write;
-
+    machine(&um, main_read, main_write);
     printf("Hello, world!\n");
 
     return 0;
