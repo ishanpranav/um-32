@@ -4,6 +4,4 @@
 
 // http://boundvariable.org
 
-#include "byte.h"
-
-typedef void (*Writer)(Byte value);
+typedef void (*Writer)(uint8_t value);

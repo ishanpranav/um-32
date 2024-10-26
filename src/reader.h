@@ -4,6 +4,6 @@
 
 // http://boundvariable.org
 
-#include "byte.h"
+#include <stdint.h>
 
-typedef Byte (*Reader)();
+typedef uint8_t (*Reader)();

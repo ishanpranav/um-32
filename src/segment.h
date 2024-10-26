@@ -4,13 +4,13 @@
 
 // http://boundvariable.org
 
-#include "word.h"
+#include <stdint.h>
 
 struct Segment
 {
-    Word count;
-    Word capacity;
-    Word* buffer;
+    uint32_t count;
+    uint32_t capacity;
+    uint32_t* buffer;
 };
 
 typedef struct Segment* Segment;

@@ -9,12 +9,12 @@
 
 struct Machine um;
 
-static Byte main_read()
+static uint8_t main_read()
 {
     return getchar();
 }
 
-static void main_write(Byte value)
+static void main_write(uint8_t value)
 {
     putchar(value);
 }
@@ -22,7 +22,8 @@ static void main_write(Byte value)
 int main()
 {
     machine(&um, main_read, main_write);
-    printf("Hello, world!\n");
+    machine_dump(stdout, &um);
+    finalize_machine(&um);
 
     return 0;
 }

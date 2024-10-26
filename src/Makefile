@@ -4,7 +4,7 @@ CFLAGS =-pedantic -Wall -Wextra
 main: main.c machine
 	$(CC) $(CFLAGS) main.c *.o -o um32
 
-machine: machine.h machine.c segment byte.h reader.h register.h word.h writer.h
+machine: machine.h machine.c segment reader.h register.h writer.h
 	$(CC) $(CFLAGS) -c machine.c
 
 segment: segment.h segment.c

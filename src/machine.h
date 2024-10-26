@@ -7,20 +7,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "byte.h"
 #include "reader.h"
 #include "register.h"
 #include "segment.h"
-#include "word.h"
 #include "writer.h"
-#define UM32_MACHINE_HEAP_SIZE 4 * sizeof(struct Segment)
-#define UM32_MACHINE_STACK_SIZE 4
+#define UM32_MACHINE_HEAP_SEGMENTS 4
+#define UM32_MACHINE_STACK_WORDS 4
 
 struct Machine
 {
-    Word stack[UM32_MACHINE_STACK_SIZE];
-    Word registers[REGISTERS_COUNT];
-    struct Segment segments[UM32_MACHINE_HEAP_SIZE / sizeof(struct Segment)];
+    uint32_t registers[REGISTERS_COUNT];
+    uint32_t stack[UM32_MACHINE_STACK_WORDS];
+    struct Segment segments[UM32_MACHINE_HEAP_SEGMENTS];
+    uint32_t stackPointer;
+    uint32_t segmentCount;
     Reader reader;
     Writer writer;
 };
@@ -28,5 +28,6 @@ struct Machine
 typedef struct Machine* Machine;
 
 void machine(Machine instance, Reader reader, Writer writer);
+void machine_dump(FILE* output, Machine instance);
 void machine_load_program(Machine instance, FILE* input);
 void finalize_machine(Machine instance);
