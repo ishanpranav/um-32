@@ -21,6 +21,7 @@ struct Machine
     struct Segment segments[UM32_MACHINE_HEAP_SEGMENTS];
     uint32_t stackPointer;
     uint32_t segmentCount;
+    uint32_t instructionPointer;
     Reader reader;
     Writer writer;
 };

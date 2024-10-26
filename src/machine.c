@@ -15,6 +15,7 @@ void machine(Machine instance, Reader reader, Writer writer)
 
     instance->stackPointer = 0;
     instance->segmentCount = 1;
+    instance->instructionPointer = 0;
     instance->reader = reader;
     instance->writer = writer;
 }
