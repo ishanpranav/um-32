@@ -29,7 +29,7 @@ bool machine(Machine instance, Reader reader, Writer writer)
     return true;
 }
 
-bool machine_load_program(Machine instance, FILE* input)
+bool machine_read_program(Machine instance, FILE* input)
 {
     uint32_t length;
     uint32_t chunk[UM32_MACHINE_CHUNK_SIZE];
@@ -53,58 +53,32 @@ bool machine_load_program(Machine instance, FILE* input)
     return !ferror(input);
 }
 
-void machine_write_program_assembly(FILE* output, Machine instance)
+bool machine_write_program(Machine instance, FILE* output)
 {
     struct Segment segment = instance->segments[0];
+    uint32_t chunk[UM32_MACHINE_CHUNK_SIZE];
 
-    for (uint32_t i = 0; i < segment.count; i++)
+    for (uint32_t i = 0; i < segment.count; i += UM32_MACHINE_CHUNK_SIZE)
     {
-        uint32_t word = segment.buffer[i];
-        uint32_t opcode = word >> 28;
+        uint32_t length = UM32_MACHINE_CHUNK_SIZE;
 
-        fprintf(output, "%08" PRIx32 ": %-5s ", word, opcode_to_string(opcode));
-
-        if (opcode == OPCODE_IMMEDIATE)
+        if (length > segment.count - i)
         {
-            uint32_t a = (word >> 25) & 0x7;
-            uint32_t immediate = word & 0x01ffffff;
-
-            fprintf(output, "%d $0x%" PRIx32 "\n", a, immediate);
-
-            continue;
+            length = segment.count - i;
         }
 
-        uint32_t a = (word >> 6) & 0x7;
-        uint32_t b = (word >> 3) & 0x7;
-        uint32_t c = word & 0x7;
-
-        switch (opcode)
+        for (uint32_t i = 0; i < length; i++)
         {
-        case OPCODE_ADD:
-        case OPCODE_CONDITIONAL_MOVE:
-        case OPCODE_DIVIDE:
-        case OPCODE_GET:
-        case OPCODE_MULTIPLY:
-        case OPCODE_NAND:
-        case OPCODE_SET:
-            fprintf(output, "%" PRIu32 " %" PRIu32 " %" PRIu32 "\n", a, b, c);
-            break;
+            chunk[i] = __builtin_bswap32(segment.buffer[i]);
+        }
 
-        case OPCODE_ALLOCATE:
-        case OPCODE_LOAD:
-            fprintf(output, "%" PRIu32 " %" PRIu32 "\n", b, c);
-            break;
-
-        case OPCODE_FREE:
-        case OPCODE_READ:
-        case OPCODE_WRITE:
-            fprintf(output, "%" PRIu32 "\n", c);
-            break;
-
-        default:
-            fprintf(output, "\n");
+        if (fwrite(chunk, sizeof * chunk, length, output) != length)
+        {
+            return false;
         }
     }
+
+    return true;
 }
 
 bool machine_execute(Machine instance)

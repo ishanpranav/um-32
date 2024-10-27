@@ -1,8 +1,11 @@
 CC = clang
 CFLAGS =-pedantic -Wall -Wextra
 
-main: main.c machine
-	$(CC) $(CFLAGS) main.c *.o -o um32
+umasm: umasm.c machine
+	$(CC) $(CFLAGS) umasm.c *.o -o umasm
+
+umdasm: umdasm.c machine
+	$(CC) $(CFLAGS) umdasm.c *.o -o umdasm
 
 machine: machine.h machine.c opcode segment reader.h writer.h
 	$(CC) $(CFLAGS) -c machine.c
@@ -14,4 +17,4 @@ segment: segment.h segment.c
 	$(CC) $(CFLAGS) -c segment.c
 
 clean:
-	rm -rf *.o um32
+	rm -rf *.o umasm umdasm umvm

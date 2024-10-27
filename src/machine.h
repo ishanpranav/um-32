@@ -12,6 +12,16 @@
 #include "writer.h"
 #define UM32_MACHINE_REGISTERS 8 
 #define UM32_MACHINE_HEAP_SEGMENTS 4
+#define um32_machine_opcode(word) ((word) >> 28)
+#define um32_machine_operand_a(word) (((word) >> 6) & 0x7)
+#define um32_machine_operand_b(word) (((word) >> 3) & 0x7)
+#define um32_machine_operand_c(word) ((word) & 0x7)
+#define um32_machine_immediate_register(word) (((word) >> 25) & 0x7)
+#define um32_machine_immediate_value(word) ((word) & 0x01ffffff)
+#define um32_machine_word(opcode, a, b, c) \
+    (((opcode) << 28) | ((a) << 6) | ((b) << 3) | (c))
+#define um32_machine_immediate_word(opcode, a, immediate) \
+    (((opcode) << 28) | ((a) << 25) | (immediate))
 
 struct Machine
 {
@@ -27,8 +37,8 @@ struct Machine
 typedef struct Machine* Machine;
 
 bool machine(Machine instance, Reader reader, Writer writer);
-bool machine_load_program(Machine instance, FILE* input);
+bool machine_read_program(Machine instance, FILE* output);
+bool machine_write_program(Machine instance, FILE* input);
 bool machine_execute(Machine instance);
 void machine_dump(FILE* output, Machine instance);
-void machine_write_program_assembly(FILE* output, Machine instance);
 void finalize_machine(Machine instance);

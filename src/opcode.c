@@ -4,9 +4,10 @@
 
 // http://boundvariable.org
 
+#include <string.h>
 #include "opcode.h"
 
-const char* OPCODES_STRINGS[OPCODES_COUNT] =
+static const char* OPCODES_STRINGS[OPCODES_COUNT] =
 {
     [OPCODE_ADD] = "add",
     [OPCODE_ALLOCATE] = "alloc",
@@ -32,4 +33,17 @@ const char* opcode_to_string(Opcode value)
     }
 
     return OPCODES_STRINGS[value];
+}
+
+Opcode opcode_from_string(const char* value)
+{
+    for (Opcode opcode = 0; opcode < OPCODES_COUNT; opcode++)
+    {
+        if (strcmp(value, OPCODES_STRINGS[opcode]) == 0)
+        {
+            return opcode;
+        }
+    }
+
+    return OPCODES_COUNT;
 }

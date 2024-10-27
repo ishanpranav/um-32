@@ -55,6 +55,8 @@ dkms.conf
 .vscode/
 
 # Application
-src/um32
 src/*.um
 src/*.umz
+src/umasm
+src/umdasm
+src/umvm

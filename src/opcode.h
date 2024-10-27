@@ -4,6 +4,9 @@
 
 // http://boundvariable.org
 
+#ifndef UM32_OPCODE
+#define UM32_OPCODE
+
 enum Opcode
 {
     OPCODE_CONDITIONAL_MOVE = 0,
@@ -26,3 +29,6 @@ enum Opcode
 typedef enum Opcode Opcode;
 
 const char* opcode_to_string(Opcode value);
+Opcode opcode_from_string(const char* value);
+
+#endif

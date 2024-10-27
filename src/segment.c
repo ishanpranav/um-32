@@ -46,6 +46,19 @@ bool segment_ensure_capacity(Segment instance, uint32_t capacity)
     return true;
 }
 
+bool segment_add(Segment instance, uint32_t value)
+{
+    if (!segment_ensure_capacity(instance, instance->count + 1))
+    {
+        return false;
+    }
+
+    instance->buffer[instance->count] = value;
+    instance->count++;
+
+    return true;
+}
+
 bool segment_add_range(Segment instance, uint32_t values[], uint32_t count)
 {
     if (!segment_ensure_capacity(instance, instance->count + count))
