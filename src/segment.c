@@ -19,6 +19,21 @@ bool segment(Segment instance)
     return instance->buffer;
 }
 
+bool segment_from_capacity(Segment instance, uint32_t capacity)
+{
+    instance->count = capacity;
+
+    if (capacity < UM_SEGMENT_DEFAULT)
+    {
+        capacity = UM_SEGMENT_DEFAULT;
+    }
+
+    instance->capacity = capacity;
+    instance->buffer = calloc(capacity, sizeof * instance->buffer);
+
+    return instance->buffer;
+}
+
 bool segment_ensure_capacity(Segment instance, uint32_t capacity)
 {
     if (instance->capacity >= capacity)
@@ -77,5 +92,10 @@ void finalize_segment(Segment instance)
 {
     instance->count = 0;
 
-    free(instance->buffer);
+    if (instance->buffer)
+    {
+        free(instance->buffer);
+
+        instance->buffer = NULL;
+    }
 }

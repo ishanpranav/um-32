@@ -8,12 +8,18 @@
 
 static const char* FAULTS_STRINGS[FAULTS_COUNT] =
 {
-    [FAULT_NONE] = "terminated",
+    [FAULT_NONE] = "ok",
+    [FAULT_TERMINATED] = "terminated",
     [FAULT_HALTED] = "stopped",
     [FAULT_DIVISION_BY_ZERO] = "division by zero",
+    [FAULT_INVALID_BYTE] = "invalid byte",
     [FAULT_INVALID_INDEX] = "invalid index",
     [FAULT_INVALID_INSTRUCTION] = "invalid instruction",
-    [FAULT_INVALID_SEGMENT] = "invalid segment"
+    [FAULT_INVALID_SEGMENT] = "invalid segment",
+    [FAULT_MISSING_READER] = "missing reader",
+    [FAULT_MISSING_WRITER] = "missing writer",
+    [FAULT_NO_OPERATION] = "no-op",
+    [FAULT_OUT_OF_MEMORY] = "out of memory",
 };
 
 const char* fault_to_string(Fault value)

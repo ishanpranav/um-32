@@ -83,7 +83,7 @@ Fault machine_execute(Machine instance)
 {
     if (instance->instructionPointer >= instance->segments[0].count)
     {
-        return FAULT_NONE;
+        return FAULT_TERMINATED;
     }
 
     uint32_t a;
@@ -119,14 +119,35 @@ Fault machine_execute(Machine instance)
     }
     break;
 
-    case OPCODE_CONDITIONAL_MOVE:
+    case OPCODE_ALLOCATE:
     {
+        uint32_t capacity = instance->registers[c];
+
+        if (instance->segmentCount >= UM32_MACHINE_HEAP_SEGMENTS)
+        {
+            return FAULT_OUT_OF_MEMORY;
+        }
+
+        bool result = segment_from_capacity(
+            instance->segments + instance->segmentCount,
+            capacity);
+
+        if (!result)
+        {
+            return FAULT_OUT_OF_MEMORY;
+        }
+
+        instance->registers[b] = instance->segmentCount;
+        instance->segmentCount++;
+    }
+    break;
+
+    case OPCODE_CONDITIONAL_MOVE:
         if (instance->registers[c])
         {
             instance->registers[a] = instance->registers[b];
         }
-    }
-    break;
+        break;
 
     case OPCODE_DIVIDE:
     {
@@ -138,6 +159,19 @@ Fault machine_execute(Machine instance)
         }
 
         instance->registers[a] = instance->registers[b] / denominator;
+    }
+    break;
+
+    case OPCODE_FREE:
+    {
+        uint32_t segment = instance->registers[c];
+
+        if (segment >= instance->segmentCount)
+        {
+            return FAULT_INVALID_SEGMENT;
+        }
+
+        finalize_segment(instance->segments + segment);
     }
     break;
 
@@ -162,6 +196,38 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_HALT: return FAULT_HALTED;
 
+    case OPCODE_LOAD:
+    {
+        uint32_t segment = instance->registers[b];     
+        uint32_t index = instance->registers[c];
+
+        if (segment >= instance->segmentCount)
+        {
+            return FAULT_INVALID_SEGMENT;
+        }
+
+        uint32_t count = instance->segments[segment].count;
+
+        if (index >= count)
+        {
+            return FAULT_INVALID_INDEX;
+        }
+
+        if (segment)
+        {
+            segment_ensure_capacity(instance->segments, count);
+            memcpy(
+                instance->segments[0].buffer, 
+                instance->segments[segment].buffer, 
+                count * sizeof * instance->segments[0].buffer);
+
+            instance->segments[0].count = instance->segments[segment].count;
+        }
+
+        instance->instructionPointer = index;
+    }
+    return FAULT_NONE;
+
     case OPCODE_MULTIPLY:
     {
         uint32_t product = instance->registers[b] * instance->registers[c];
@@ -169,12 +235,23 @@ Fault machine_execute(Machine instance)
         instance->registers[a] = product;
     }
     break;
-    
+
     case OPCODE_NAND:
     {
         uint32_t nand = ~(instance->registers[b] & instance->registers[c]);
 
         instance->registers[a] = nand;
+    }
+    break;
+
+    case OPCODE_READ:
+    {
+        if (!instance->reader)
+        {
+            return FAULT_MISSING_READER;
+        }
+
+        instance->registers[c] = instance->reader();
     }
     break;
 
@@ -194,6 +271,22 @@ Fault machine_execute(Machine instance)
         }
 
         instance->segments[segment].buffer[index] = instance->registers[c];
+    }
+    break;
+
+    case OPCODE_WRITE:
+    {
+        if (instance->registers[c] > UINT8_MAX)
+        {
+            return FAULT_INVALID_BYTE;
+        }
+
+        if (!instance->writer)
+        {
+            return FAULT_MISSING_WRITER;
+        }
+
+        instance->writer(instance->registers[c]);
     }
     break;
     }

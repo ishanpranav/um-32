@@ -19,7 +19,7 @@ void instruction_write_assembly(FILE* output, uint32_t word)
         uint32_t a = um32_instruction_immediate_register(word);
         uint32_t immediate = um32_instruction_immediate_value(word);
 
-        fprintf(output, "%d $0x%" PRIx32 "\n", a, immediate);
+        fprintf(output, "r%d $0x%" PRIx32 "\n", a, immediate);
 
         return;
     }
@@ -37,18 +37,18 @@ void instruction_write_assembly(FILE* output, uint32_t word)
     case OPCODE_MULTIPLY:
     case OPCODE_NAND:
     case OPCODE_SET:
-        fprintf(output, "%" PRIu32 " %" PRIu32 " %" PRIu32 "\n", a, b, c);
+        fprintf(output, "r%" PRIu32 " r%" PRIu32 " r%" PRIu32 "\n", a, b, c);
         break;
 
     case OPCODE_ALLOCATE:
     case OPCODE_LOAD:
-        fprintf(output, "%" PRIu32 " %" PRIu32 "\n", b, c);
+        fprintf(output, "r%" PRIu32 " r%" PRIu32 "\n", b, c);
         break;
 
     case OPCODE_FREE:
     case OPCODE_READ:
     case OPCODE_WRITE:
-        fprintf(output, "%" PRIu32 "\n", c);
+        fprintf(output, "r%" PRIu32 "\n", c);
         break;
 
     default:

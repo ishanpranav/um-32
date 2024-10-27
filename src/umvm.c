@@ -13,7 +13,14 @@ struct Machine um;
 
 static uint8_t vm_read()
 {
-    return getchar();
+    int result = getchar();
+
+    if (result == EOF)
+    {
+        return -1;
+    }
+
+    return result;
 }
 
 static void vm_write(uint8_t value)
@@ -64,18 +71,23 @@ int main(int count, char* args[])
     {
         fault = machine_execute(&um);
 
-        if (fault && fault != FAULT_HALTED)
+        if (fault)
         {
-            fprintf(stderr, "%s: %s at %08" PRIx32 "\n",
-                app, fault_to_string(fault), um.instructionPointer);
-            machine_dump(stderr, &um);
-            finalize_machine(&um);
+            fprintf(stderr, "%s: %s\n", path, fault_to_string(fault));
         
-            return EXIT_FAILURE;
+            if (fault != FAULT_HALTED &&
+                fault != FAULT_TERMINATED)
+            {
+                machine_dump(stderr, &um);
+                finalize_machine(&um);
+            
+                return EXIT_FAILURE;
+            }
         }
     }
-    while (!fault);
+    while (fault != FAULT_TERMINATED);
 
+    fprintf(stdout, "%s: %s\n", path, fault_to_string(fault));
     machine_dump(stdout, &um);
     finalize_machine(&um);
 

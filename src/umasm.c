@@ -47,7 +47,7 @@ size_t asm_read(FILE* input, Machine instance)
         uint32_t b;
         uint32_t c;
         int count = sscanf(instruction,
-            "%5s %" SCNu32 " %" SCNu32 " %" SCNu32,
+            "%5s r%" SCNu32 " r%" SCNu32 " r%" SCNu32,
             opcodeString, &a, &b, &c);
 
         if (count < 1)
@@ -63,7 +63,7 @@ size_t asm_read(FILE* input, Machine instance)
         {
             uint32_t immediate;
 
-            count = sscanf(instruction, "%5s %" SCNx32 " $0x%" SCNx32,
+            count = sscanf(instruction, "%5s r%" SCNx32 " $0x%" SCNx32,
                 opcodeString, &a, &immediate);
 
             if (count != 3 || a > 7)
