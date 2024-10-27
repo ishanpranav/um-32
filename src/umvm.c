@@ -5,6 +5,7 @@
 // http://boundvariable.org
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include "machine.h"
 
@@ -59,10 +60,14 @@ int main(int count, char* args[])
 
     while (!um.halted)
     {
-        if (!machine_execute(&um))
+        Fault fault = machine_execute(&um);
+
+        if (fault)
         {
+            fprintf(stderr, "%s: %s at %08" PRIx32 "\n",
+                app, fault_to_string(fault), um.instructionPointer);
+            machine_dump(stderr, &um);
             finalize_machine(&um);
-            fprintf(stderr, "%s: %s\n", app, strerror(errno));
         
             return EXIT_FAILURE;
         }

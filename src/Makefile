@@ -16,8 +16,11 @@ umdasm: umdasm.c um
 umvm: umvm.c um
 	$(CC) $(CFLAGS) $(CEXTRAS) umvm.c -o umvm
 
-machine: machine.h machine.c opcode segment reader.h writer.h
+machine: machine.h machine.c fault opcode segment reader.h writer.h
 	$(CC) $(CFLAGS) -fPIC -c machine.c
+
+fault: fault.h fault.c
+	$(CC) $(CFLAGS) -fPIC -c fault.c
 
 opcode: opcode.h opcode.c
 	$(CC) $(CFLAGS) -fPIC -c opcode.c
@@ -26,4 +29,4 @@ segment: segment.h segment.c
 	$(CC) $(CFLAGS) -fPIC -c segment.c
 
 clean:
-	rm -rf *.o umasm umdasm umvm
+	rm -rf *.o *.so umasm umdasm umvm

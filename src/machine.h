@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "fault.h"
 #include "reader.h"
 #include "segment.h"
 #include "writer.h"
@@ -39,6 +40,6 @@ typedef struct Machine* Machine;
 bool machine(Machine instance, Reader reader, Writer writer);
 bool machine_read_program(Machine instance, FILE* output);
 bool machine_write_program(Machine instance, FILE* input);
-bool machine_execute(Machine instance);
+Fault machine_execute(Machine instance);
 void machine_dump(FILE* output, Machine instance);
 void finalize_machine(Machine instance);

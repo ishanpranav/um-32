@@ -33,11 +33,11 @@ bool machine_read_program(Machine instance, FILE* input)
 {
     uint32_t length;
     uint32_t chunk[UM32_MACHINE_CHUNK_SIZE];
-    
+
     do
     {
         length = fread(chunk, sizeof * chunk, UM32_MACHINE_CHUNK_SIZE, input);
-    
+
         for (uint32_t i = 0; i < length; i++)
         {
             chunk[i] = __builtin_bswap32(chunk[i]);
@@ -47,8 +47,7 @@ bool machine_read_program(Machine instance, FILE* input)
         {
             return false;
         }
-    }
-    while (length == UM32_MACHINE_CHUNK_SIZE);
+    } while (length == UM32_MACHINE_CHUNK_SIZE);
 
     return !ferror(input);
 }
@@ -81,16 +80,72 @@ bool machine_write_program(Machine instance, FILE* output)
     return true;
 }
 
-bool machine_execute(Machine instance)
+Fault machine_execute(Machine instance)
 {
     if (instance->instructionPointer >= instance->segments[0].count)
     {
         instance->halted = true;
 
-        return true;
+        return FAULT_NONE;
     }
 
-    return true;
+    uint32_t a;
+    uint32_t word = instance->segments[0].buffer[instance->instructionPointer];
+    uint32_t opcode = um32_machine_opcode(word);
+
+    if (opcode > OPCODES_COUNT)
+    {
+        return FAULT_INVALID_INSTRUCTION;
+    }
+
+    if (opcode == OPCODE_IMMEDIATE)
+    {
+        a = um32_machine_immediate_register(word);
+        instance->registers[a] = um32_machine_immediate_value(word);
+        instance->instructionPointer++;
+
+        return FAULT_NONE;
+    }
+
+    a = um32_machine_operand_a(word);
+
+    uint32_t b = um32_machine_operand_b(word);
+    uint32_t c = um32_machine_operand_c(word);
+
+    switch (opcode)
+    {
+    case OPCODE_CONDITIONAL_MOVE:
+    {
+        if (instance->registers[c])
+        {
+            instance->registers[a] = instance->registers[b];
+        }
+    }
+    break;
+
+    case OPCODE_GET:
+    {
+        uint32_t segment = instance->registers[b];
+        uint32_t index = instance->registers[c];
+
+        if (segment >= instance->segmentCount)
+        {
+            return FAULT_INVALID_SEGMENT;
+        }
+
+        if (index >= instance->segments[segment].count)
+        {
+            return FAULT_INVALID_INDEX;
+        }
+
+        instance->registers[a] = instance->segments[segment].buffer[index];
+    }
+    break;
+    }
+
+    instance->instructionPointer++;
+
+    return FAULT_NONE;
 }
 
 static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
