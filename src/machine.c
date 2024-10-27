@@ -57,15 +57,6 @@ void machine_write_program_assembly(FILE* output, Machine instance)
 {
     struct Segment segment = instance->segments[0];
 
-    fprintf(output, "#include <stdint.h>\n" "#include <stdlib.h>\n\n");
-
-    for (uint32_t i = 0; i < UM32_MACHINE_REGISTERS; i++)
-    {
-        fprintf(output, "uintptr_t r%d;\n", i);
-    }
-
-    fprintf(output, "\n");
-
     for (uint32_t i = 0; i < segment.count; i++)
     {
         uint32_t word = segment.buffer[i];
