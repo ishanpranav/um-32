@@ -26,7 +26,7 @@ operators are denoted as follows:
 | `0xa` | Output | `outb` | byte output |
 | `0xb` | Input | `inb` | byte input |
 | `0xc` | Load program | `load` | load heap object into program segment |
-| `0xd` | Orthography | `li` | register load immediate literal |
+| `0xd` | Orthography | `li` | load immediate literal into register |
 
 Here are the first few instructions from the `sandmark.umz` profiler program,
 translated from the bytecode (left) to the intermediate representation (right):
@@ -36,10 +36,13 @@ translated from the bytecode (left) to the intermediate representation (right):
 ```asm
 080000d0: cmov  r3 r2 r0
 300000c0: add   r3 r0 r0
+
+# The li instruction takes an immediate value supplied in hexadecimal
 d2000014: li    r1 $0x14
 d400005b: li    r2 $0x5b
 d6000035: li    r3 $0x35
 d000000d: li    r0 $0xd
+
 c0000030: load  r6 r0
 00000000: cmov  r0 r0 r0
 5f0000d0: div   r3 r2 r0
