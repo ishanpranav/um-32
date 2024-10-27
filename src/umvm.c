@@ -10,19 +10,14 @@
 
 struct Machine um;
 
-static uint8_t main_read()
+static uint8_t vm_read()
 {
     return getchar();
 }
 
-static void main_write(uint8_t value)
+static void vm_write(uint8_t value)
 {
     putchar(value);
-}
-
-static void main_print_usage(FILE* output, char* app)
-{
-    fprintf(output, "Usage: %s FILE\n", app);
 }
 
 int main(int count, char* args[])
@@ -31,12 +26,12 @@ int main(int count, char* args[])
 
     if (count < 2)
     {
-        main_print_usage(stderr, app);
+        fprintf(stderr, "Usage: %s FILE\n", app);
 
         return EXIT_FAILURE;
     }
 
-    if (!machine(&um, main_read, main_write))
+    if (!machine(&um, vm_read, vm_write))
     {
         fprintf(stderr, "%s: %s\n", app, strerror(errno));
 
@@ -54,7 +49,7 @@ int main(int count, char* args[])
         return EXIT_FAILURE;
     }
 
-    if (!machine_load_program(&um, input) || fclose(input) != 0)
+    if (!machine_read_program(&um, input) || fclose(input) != 0)
     {
         finalize_machine(&um);        
         fprintf(stderr, "%s: %s\n", app, strerror(errno));
@@ -62,19 +57,18 @@ int main(int count, char* args[])
         return EXIT_FAILURE;
     }
 
-    // while (!um.halted)
-    // {
-    //     if (!machine_execute(&um))
-    //     {
-    //         finalize_machine(&um);
-    //         fprintf(stderr, "%s: %s\n", app, strerror(errno));
+    while (!um.halted)
+    {
+        if (!machine_execute(&um))
+        {
+            finalize_machine(&um);
+            fprintf(stderr, "%s: %s\n", app, strerror(errno));
         
-    //         return EXIT_FAILURE;
-    //     }
-    // }
+            return EXIT_FAILURE;
+        }
+    }
 
-    machine_write_program_assembly(stdout, &um);
-    // machine_dump(stdout, &um);
+    machine_dump(stdout, &um);
     finalize_machine(&um);
 
     return EXIT_SUCCESS;

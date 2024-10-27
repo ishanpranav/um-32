@@ -1,20 +1,29 @@
 CC = clang
 CFLAGS =-pedantic -Wall -Wextra
+CEXTRAS = -lum -L. -Wl,-rpath=.
 
-umasm: umasm.c machine
-	$(CC) $(CFLAGS) umasm.c *.o -o umasm
+all: umasm umdasm umvm
 
-umdasm: umdasm.c machine
-	$(CC) $(CFLAGS) umdasm.c *.o -o umdasm
+um: machine
+	$(CC) $(CFLAGS) *.o -o libum.so -shared
+
+umasm: umasm.c um
+	$(CC) $(CFLAGS) $(CEXTRAS) umasm.c -o umasm
+
+umdasm: umdasm.c um
+	$(CC) $(CFLAGS) $(CEXTRAS) umdasm.c -o umdasm
+
+umvm: umvm.c um
+	$(CC) $(CFLAGS) $(CEXTRAS) umvm.c -o umvm
 
 machine: machine.h machine.c opcode segment reader.h writer.h
-	$(CC) $(CFLAGS) -c machine.c
+	$(CC) $(CFLAGS) -fPIC -c machine.c
 
 opcode: opcode.h opcode.c
-	$(CC) $(CFLAGS) -c opcode.c
+	$(CC) $(CFLAGS) -fPIC -c opcode.c
 
 segment: segment.h segment.c
-	$(CC) $(CFLAGS) -c segment.c
+	$(CC) $(CFLAGS) -fPIC -c segment.c
 
 clean:
 	rm -rf *.o umasm umdasm umvm
