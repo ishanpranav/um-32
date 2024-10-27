@@ -17,8 +17,8 @@
 struct Machine
 {
     uint32_t registers[UM32_MACHINE_REGISTERS];
-    struct Segment segments[UM32_MACHINE_HEAP_SEGMENTS];
-    uint32_t segmentCount;
+    struct Segment program;
+    struct Segment heap;
     uint32_t instructionPointer;
     Reader reader;
     Writer writer;

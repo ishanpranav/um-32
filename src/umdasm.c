@@ -13,11 +13,9 @@ struct Machine um;
 
 void dasm_write(FILE* output, Machine instance)
 {
-    struct Segment segment = instance->segments[0];
-
-    for (uint32_t i = 0; i < segment.count; i++)
+    for (uint32_t i = 0; i < instance->program.length; i++)
     {
-        instruction_write_assembly(output, segment.buffer[i]);
+        instruction_write_assembly(output, instance->program.buffer[i]);
     }
 }
 

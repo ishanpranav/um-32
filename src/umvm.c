@@ -73,8 +73,7 @@ int main(int count, char* args[])
         {
             fprintf(stderr, "%s: %s\n", path, fault_to_string(fault));
         
-            if (fault != FAULT_HALTED &&
-                fault != FAULT_TERMINATED)
+            if (fault != FAULT_HALTED && fault != FAULT_TERMINATED)
             {
                 machine_dump(stderr, &um);
                 finalize_machine(&um);

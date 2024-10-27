@@ -9,7 +9,7 @@
 
 struct Segment
 {
-    uint32_t count;
+    uint32_t length;
     uint32_t capacity;
     uint32_t* buffer;
 };
@@ -17,7 +17,6 @@ struct Segment
 typedef struct Segment* Segment;
 
 bool segment(Segment instance);
-bool segment_from_capacity(Segment instance, uint32_t capacity);
 bool segment_ensure_capacity(Segment instance, uint32_t capacity);
 bool segment_add(Segment instance, uint32_t value);
 bool segment_add_range(Segment instance, uint32_t values[], uint32_t count);

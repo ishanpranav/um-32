@@ -19,6 +19,7 @@ size_t asm_read(FILE* input, Machine instance)
     size_t lineNumber = 0;
     char* instruction;
     char buffer[UM32_ASM_BUFFER_SIZE];
+    Segment program = &instance->program;
 
     while ((instruction = fgets(buffer, UM32_ASM_BUFFER_SIZE, input)))
     {
@@ -71,11 +72,15 @@ size_t asm_read(FILE* input, Machine instance)
             }
 
             uint32_t word = um32_instruction_from_immediate(
-                opcode, 
-                a, 
+                opcode,
+                a,
                 immediate);
 
-            segment_add(instance->segments, word);
+            if (segment_add(program, word))
+            {
+                perror("segment_add");
+                exit(EXIT_FAILURE);
+            }
         }
         break;
 
@@ -92,7 +97,11 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_instruction(opcode, a, b, c));
+            if (!segment_add(program, um32_instruction(opcode, a, b, c)))
+            {
+                perror("segment_add");
+                exit(EXIT_FAILURE);
+            }
         }
         break;
 
@@ -104,7 +113,11 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_instruction(opcode, 0, b, c));
+            if (!segment_add(program, um32_instruction(opcode, 0, b, c)))
+            {
+                perror("segment_add");
+                exit(EXIT_FAILURE);
+            }
         }
         break;
 
@@ -117,7 +130,11 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_instruction(opcode, 0, 0, c));
+            if (!segment_add(program, um32_instruction(opcode, 0, 0, c)))
+            {
+                perror("segment_add");
+                exit(EXIT_FAILURE);
+            }
         }
         break;
 
@@ -128,7 +145,11 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_instruction(opcode, 0, 0, 0));
+            if (!segment_add(program, um32_instruction(opcode, 0, 0, 0)))
+            {
+                perror("segment_add");
+                exit(EXIT_FAILURE);
+            }
         }
         break;
 

@@ -9,18 +9,24 @@
 #include "machine.h"
 #include "opcode.h"
 #define UM32_MACHINE_CHUNK_SIZE 256
-#define UM32_MACHINE_MAX_SEGMENT_DUMP 16
+#define UM32_MACHINE_MAX_DUMP 16
 
 bool machine(Machine instance, Reader reader, Writer writer)
 {
-    if (!segment(instance->segments))
+    if (!segment(&instance->program))
     {
+        return false;
+    }
+
+    if (!segment(&instance->heap))
+    {
+        finalize_segment(&instance->program);
+
         return false;
     }
 
     memset(instance->registers, 0, sizeof instance->registers);
 
-    instance->segmentCount = 1;
     instance->instructionPointer = 0;
     instance->reader = reader;
     instance->writer = writer;
@@ -42,32 +48,33 @@ bool machine_read_program(Machine instance, FILE* input)
             chunk[i] = __builtin_bswap32(chunk[i]);
         }
 
-        if (!segment_add_range(instance->segments, chunk, length))
+        if (!segment_add_range(&instance->program, chunk, length))
         {
             return false;
         }
-    } while (length == UM32_MACHINE_CHUNK_SIZE);
+    } 
+    while (length == UM32_MACHINE_CHUNK_SIZE);
 
     return !ferror(input);
 }
 
 bool machine_write_program(FILE* output, Machine instance)
 {
-    struct Segment segment = instance->segments[0];
+    struct Segment program = instance->program;
     uint32_t chunk[UM32_MACHINE_CHUNK_SIZE];
 
-    for (uint32_t i = 0; i < segment.count; i += UM32_MACHINE_CHUNK_SIZE)
+    for (uint32_t i = 0; i < program.length; i += UM32_MACHINE_CHUNK_SIZE)
     {
         uint32_t length = UM32_MACHINE_CHUNK_SIZE;
 
-        if (length > segment.count - i)
+        if (length > program.length - i)
         {
-            length = segment.count - i;
+            length = program.length - i;
         }
 
         for (uint32_t i = 0; i < length; i++)
         {
-            chunk[i] = __builtin_bswap32(segment.buffer[i]);
+            chunk[i] = __builtin_bswap32(program.buffer[i]);
         }
 
         if (fwrite(chunk, sizeof * chunk, length, output) != length)
@@ -81,13 +88,13 @@ bool machine_write_program(FILE* output, Machine instance)
 
 Fault machine_execute(Machine instance)
 {
-    if (instance->instructionPointer >= instance->segments[0].count)
+    if (instance->instructionPointer >= instance->program.length)
     {
         return FAULT_TERMINATED;
     }
 
     uint32_t a;
-    uint32_t word = instance->segments[0].buffer[instance->instructionPointer];
+    uint32_t word = instance->program.buffer[instance->instructionPointer];
     uint32_t opcode = um32_instruction_opcode(word);
 
     if (opcode > OPCODES_COUNT)
@@ -121,24 +128,26 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_ALLOCATE:
     {
-        uint32_t capacity = instance->registers[c];
+        // uint32_t capacity = instance->registers[c];
 
-        if (instance->segmentCount >= UM32_MACHINE_HEAP_SEGMENTS)
-        {
-            return FAULT_OUT_OF_MEMORY;
-        }
+        // if (instance->segmentCount >= UM32_MACHINE_HEAP_SEGMENTS)
+        // {
+        //     return FAULT_OUT_OF_MEMORY;
+        // }
 
-        bool result = segment_from_capacity(
-            instance->segments + instance->segmentCount,
-            capacity);
+        // bool result = segment_from_capacity(
+        //     instance->segments + instance->segmentCount,
+        //     capacity);
 
-        if (!result)
-        {
-            return FAULT_OUT_OF_MEMORY;
-        }
+        // if (!result)
+        // {
+        //     return FAULT_OUT_OF_MEMORY;
+        // }
 
-        instance->registers[b] = instance->segmentCount;
-        instance->segmentCount++;
+        // instance->registers[b] = instance->segmentCount;
+        // instance->segmentCount++;
+
+        return FAULT_OUT_OF_MEMORY;
     }
     break;
 
@@ -164,33 +173,35 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_FREE:
     {
-        uint32_t segment = instance->registers[c];
+        // uint32_t segment = instance->registers[c];
 
-        if (segment >= instance->segmentCount)
-        {
-            return FAULT_INVALID_SEGMENT;
-        }
+        // if (segment >= instance->segmentCount)
+        // {
+        //     return FAULT_INVALID_SEGMENT;
+        // }
 
-        finalize_segment(instance->segments + segment);
+        // finalize_segment(instance->segments + segment);
     }
     break;
 
     case OPCODE_GET:
     {
-        uint32_t segment = instance->registers[b];
-        uint32_t index = instance->registers[c];
+        // uint32_t segment = instance->registers[b];
+        // uint32_t index = instance->registers[c];
 
-        if (segment >= instance->segmentCount)
-        {
-            return FAULT_INVALID_SEGMENT;
-        }
+        // if (segment >= instance->segmentCount)
+        // {
+        //     return FAULT_INVALID_SEGMENT;
+        // }
 
-        if (index >= instance->segments[segment].count)
-        {
-            return FAULT_INVALID_INDEX;
-        }
+        // if (index >= instance->segments[segment].count)
+        // {
+        //     return FAULT_INVALID_INDEX;
+        // }
 
-        instance->registers[a] = instance->segments[segment].buffer[index];
+        // instance->registers[a] = instance->segments[segment].buffer[index];
+
+        return FAULT_INVALID_INDEX;
     }
     break;
 
@@ -198,33 +209,35 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_LOAD:
     {
-        uint32_t segment = instance->registers[b];     
-        uint32_t index = instance->registers[c];
+        // uint32_t segment = instance->registers[b];
+        // uint32_t index = instance->registers[c];
 
-        if (segment >= instance->segmentCount)
-        {
-            return FAULT_INVALID_SEGMENT;
-        }
+        // if (segment >= instance->segmentCount)
+        // {
+        //     return FAULT_INVALID_SEGMENT;
+        // }
 
-        uint32_t count = instance->segments[segment].count;
+        // uint32_t count = instance->segments[segment].count;
 
-        if (index >= count)
-        {
-            return FAULT_INVALID_INDEX;
-        }
+        // if (index >= count)
+        // {
+        //     return FAULT_INVALID_INDEX;
+        // }
 
-        if (segment)
-        {
-            segment_ensure_capacity(instance->segments, count);
-            memcpy(
-                instance->segments[0].buffer, 
-                instance->segments[segment].buffer, 
-                count * sizeof * instance->segments[0].buffer);
+        // if (segment)
+        // {
+        //     segment_ensure_capacity(instance->segments, count);
+        //     memcpy(
+        //         instance->segments[0].buffer,
+        //         instance->segments[segment].buffer,
+        //         count * sizeof * instance->segments[0].buffer);
 
-            instance->segments[0].count = instance->segments[segment].count;
-        }
+        //     instance->segments[0].count = instance->segments[segment].count;
+        // }
 
-        instance->instructionPointer = index;
+        // instance->instructionPointer = index;
+
+        return FAULT_INVALID_INDEX;
     }
     return FAULT_NONE;
 
@@ -257,20 +270,22 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_SET:
     {
-        uint32_t segment = instance->registers[a];
-        uint32_t index = instance->registers[b];
+        // uint32_t segment = instance->registers[a];
+        // uint32_t index = instance->registers[b];
 
-        if (segment >= instance->segmentCount)
-        {
-            return FAULT_INVALID_SEGMENT;
-        }
+        // if (segment >= instance->segmentCount)
+        // {
+        //     return FAULT_INVALID_SEGMENT;
+        // }
 
-        if (index >= instance->segments[segment].count)
-        {
-            return FAULT_INVALID_INDEX;
-        }
+        // if (index >= instance->segments[segment].count)
+        // {
+        //     return FAULT_INVALID_INDEX;
+        // }
 
-        instance->segments[segment].buffer[index] = instance->registers[c];
+        // instance->segments[segment].buffer[index] = instance->registers[c];
+
+        return FAULT_INVALID_INDEX;
     }
     break;
 
@@ -298,6 +313,11 @@ Fault machine_execute(Machine instance)
 
 static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
 {
+    if (length > UM32_MACHINE_MAX_DUMP)
+    {
+        length = UM32_MACHINE_MAX_DUMP;
+    }
+
     while (length >= 4)
     {
         fprintf(
@@ -329,9 +349,9 @@ static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
 
 void machine_dump(FILE* output, Machine instance)
 {
-    struct Segment program = instance->segments[0];
+    struct Segment program = instance->program;
 
-    if (instance->instructionPointer < program.count)
+    if (instance->instructionPointer < program.length)
     {
         uint32_t word = program.buffer[instance->instructionPointer];
 
@@ -343,31 +363,32 @@ void machine_dump(FILE* output, Machine instance)
 
     fprintf(output, "Registers:%17d word(s)\n", UM32_MACHINE_REGISTERS);
     machine_dump_many(output, instance->registers, UM32_MACHINE_REGISTERS);
-    fprintf(output, "Heap:%19d segment(s)\n\n", instance->segmentCount);
+    fprintf(output, "Program:%18d words(s)\n", program.length);
+    machine_dump_many(output, program.buffer, program.length);
 
-    for (uint32_t i = 0; i < instance->segmentCount; i++)
-    {
-        struct Segment segment = instance->segments[i];
+    // fprintf(output, "Heap:%20d object(s)\n\n", instance->segmentCount);
 
-        fprintf(
-            output,
-            "Segment %08" PRIx32 ":%10d word(s)\n", i, segment.count);
+    // for (uint32_t i = 0; i < instance->segmentCount; i++)
+    // {
+    //     struct Segment segment = instance->segments[i];
 
-        uint64_t count = segment.count;
+    //     fprintf(
+    //         output,
+    //         "Segment %08" PRIx32 ":%10d word(s)\n", i, segment.count);
 
-        if (count > UM32_MACHINE_MAX_SEGMENT_DUMP)
-        {
-            count = UM32_MACHINE_MAX_SEGMENT_DUMP;
-        }
+    //     uint64_t count = segment.count;
 
-        machine_dump_many(output, segment.buffer, count);
-    }
+    //     if (count > UM32_MACHINE_MAX_SEGMENT_DUMP)
+    //     {
+    //         count = UM32_MACHINE_MAX_SEGMENT_DUMP;
+    //     }
+
+    //     machine_dump_many(output, segment.buffer, count);
+    // }
 }
 
 void finalize_machine(Machine instance)
 {
-    for (uint32_t i = 0; i < instance->segmentCount; i++)
-    {
-        finalize_segment(instance->segments + i);
-    }
+    finalize_segment(&instance->program);
+    finalize_segment(&instance->heap);
 }

@@ -12,24 +12,9 @@
 
 bool segment(Segment instance)
 {
-    instance->count = 0;
+    instance->length = 0;
     instance->capacity = UM_SEGMENT_DEFAULT;
     instance->buffer = malloc(UM_SEGMENT_DEFAULT * sizeof * instance->buffer);
-
-    return instance->buffer;
-}
-
-bool segment_from_capacity(Segment instance, uint32_t capacity)
-{
-    instance->count = capacity;
-
-    if (capacity < UM_SEGMENT_DEFAULT)
-    {
-        capacity = UM_SEGMENT_DEFAULT;
-    }
-
-    instance->capacity = capacity;
-    instance->buffer = calloc(capacity, sizeof * instance->buffer);
 
     return instance->buffer;
 }
@@ -63,34 +48,37 @@ bool segment_ensure_capacity(Segment instance, uint32_t capacity)
 
 bool segment_add(Segment instance, uint32_t value)
 {
-    if (!segment_ensure_capacity(instance, instance->count + 1))
+    if (!segment_ensure_capacity(instance, instance->length + 1))
     {
         return false;
     }
 
-    instance->buffer[instance->count] = value;
-    instance->count++;
+    instance->buffer[instance->length] = value;
+    instance->length++;
 
     return true;
 }
 
 bool segment_add_range(Segment instance, uint32_t values[], uint32_t count)
 {
-    if (!segment_ensure_capacity(instance, instance->count + count))
+    if (!segment_ensure_capacity(instance, instance->length + count))
     {
         return false;
     }
 
-    memcpy(instance->buffer + instance->count, values, count * sizeof * values);
+    memcpy(
+        instance->buffer + instance->length, 
+        values, 
+        count * sizeof * values);
 
-    instance->count += count;
+    instance->length += count;
 
     return true;
 }
 
 void finalize_segment(Segment instance)
 {
-    instance->count = 0;
+    instance->length = 0;
 
     if (instance->buffer)
     {
