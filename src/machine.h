@@ -28,7 +28,7 @@ struct Machine
 
 typedef struct Machine* Machine;
 
-void machine(Machine instance, Reader reader, Writer writer);
+bool machine(Machine instance, Reader reader, Writer writer);
 void machine_dump(FILE* output, Machine instance);
-void machine_load_program(Machine instance, FILE* input);
+bool machine_load_program(Machine instance, FILE* input);
 void finalize_machine(Machine instance);

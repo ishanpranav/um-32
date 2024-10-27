@@ -6,32 +6,31 @@
 
 #include <inttypes.h>
 #include "machine.h"
+#define UM_MACHINE_CHUNK_SIZE 1024
+#define UM_MACHINE_MAX_SEGMENT_DUMP 16
 
-void machine(Machine instance, Reader reader, Writer writer)
+bool machine(Machine instance, Reader reader, Writer writer)
 {
+    if (!segment(instance->segments))
+    {
+        return false;
+    }
+
     memset(instance->registers, 0, sizeof instance->registers);
     memset(instance->stack, 0, sizeof instance->stack);
-    segment(instance->segments);
-
+    
     instance->stackPointer = 0;
     instance->segmentCount = 1;
     instance->instructionPointer = 0;
     instance->reader = reader;
     instance->writer = writer;
+
+    return true;
 }
 
 static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
 {
-    if (!length)
-    {
-        fprintf(output, "(empty)\n");
-
-        return;
-    }
-
-    fprintf(output, "\n");
-
-    while (length > 4)
+    while (length >= 4)
     {
         fprintf(
             output,
@@ -40,6 +39,13 @@ static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
 
         values += 4;
         length -= 4;
+    }
+
+    if (!length)
+    {
+        fprintf(output, "\n");
+
+        return;
     }
 
     for (uint32_t i = 0; i < length; i++)
@@ -52,24 +58,48 @@ static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
 
 void machine_dump(FILE* output, Machine instance)
 {
-    fprintf(output, "%-28s", "Registers:");
+    fprintf(output, "Registers:%17d word(s)\n", REGISTERS_COUNT);
     machine_dump_many(output, instance->registers, REGISTERS_COUNT);
-    fprintf(output, "%-28s", "Stack:");
+    fprintf(output, "Stack:%21d word(s)\n", instance->stackPointer);
     machine_dump_many(output, instance->stack, instance->stackPointer);
+    fprintf(output, "Heap:%19d segment(s)\n\n", instance->segmentCount);
 
     for (uint32_t i = 0; i < instance->segmentCount; i++)
     {
-        fprintf(output, "%-8s %08" PRIx32 ":          ", "Segment", i);
-
         struct Segment segment = instance->segments[i];
 
-        machine_dump_many(output, segment.buffer, segment.count);
+        fprintf(
+            output,
+            "Segment %08" PRIx32 ":%10d word(s)\n", i, segment.count);
+        
+        uint64_t count = segment.count;
+
+        if (count > UM_MACHINE_MAX_SEGMENT_DUMP)
+        {
+            count = UM_MACHINE_MAX_SEGMENT_DUMP;
+        }
+
+        machine_dump_many(output, segment.buffer, count);
     }
 }
 
-void machine_load_program(Machine instance, FILE* input)
+bool machine_load_program(Machine instance, FILE* input)
 {
+    uint32_t count;
+    uint32_t chunk[UM_MACHINE_CHUNK_SIZE];
 
+    do
+    {
+        count = fread(chunk, sizeof * chunk, UM_MACHINE_CHUNK_SIZE, input);
+
+        if (!segment_add_range(instance->segments, chunk, count))
+        {
+            return false;
+        }
+    }
+    while (count == UM_MACHINE_CHUNK_SIZE);
+
+    return !ferror(input);
 }
 
 void finalize_machine(Machine instance)

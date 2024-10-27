@@ -33,25 +33,37 @@ int main(int count, char* args[])
     {
         main_print_usage(stderr, app);
 
-        return 1;
+        return EXIT_FAILURE;
     }
 
-    machine(&um, main_read, main_write);
+    if (!machine(&um, main_read, main_write))
+    {
+        fprintf(stderr, "%s: %s\n", app, strerror(errno));
+
+        return EXIT_FAILURE;
+    }
 
     char* path = args[1];
-    FILE* input = fopen(path, "r");
+    FILE* input = fopen(path, "rb");
 
     if (!input)
     {
+        finalize_machine(&um);
         fprintf(stderr, "%s: %s: %s\n", app, path, strerror(errno));
 
-        return 1;
+        return EXIT_FAILURE;
     }
 
-    machine_load_program(&um, input);
-    fclose(input);
+    if (!machine_load_program(&um, input) || fclose(input) != 0)
+    {
+        finalize_machine(&um);        
+        fprintf(stderr, "%s: %s\n", app, strerror(errno));
+
+        return EXIT_FAILURE;
+    }
+
     machine_dump(stdout, &um);
     finalize_machine(&um);
 
-    return 0;
+    return EXIT_SUCCESS;
 }

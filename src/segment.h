@@ -4,6 +4,7 @@
 
 // http://boundvariable.org
 
+#include <stdbool.h>
 #include <stdint.h>
 
 struct Segment
@@ -15,6 +16,7 @@ struct Segment
 
 typedef struct Segment* Segment;
 
-void segment(Segment instance);
-void segment_ensure_capacity();
+bool segment(Segment instance);
+bool segment_ensure_capacity(Segment instance, uint32_t capacity);
+bool segment_add_range(Segment instance, uint32_t values[], uint32_t count);
 void finalize_segment(Segment instance);
