@@ -7,7 +7,6 @@
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <stdio.h>
 #include "instruction.h"
 #include "machine.h"
 #include "opcode.h"

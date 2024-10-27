@@ -5,8 +5,6 @@
 // http://boundvariable.org
 
 #include <errno.h>
-#include <inttypes.h>
-#include <stdio.h>
 #include "machine.h"
 
 struct Machine um;

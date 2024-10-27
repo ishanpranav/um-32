@@ -4,9 +4,7 @@
 
 // http://boundvariable.org
 
-#include <inttypes.h>
 #include <errno.h>
-#include <stdio.h>
 #include "instruction.h"
 #include "machine.h"
 #include "opcode.h"
