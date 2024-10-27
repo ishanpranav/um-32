@@ -87,18 +87,18 @@ void machine_write_program_assembly(FILE* output, Machine instance)
         case OPCODE_MULTIPLY:
         case OPCODE_NAND:
         case OPCODE_SET:
-            fprintf(output, "%d %d %d\n", a, b, c);
+            fprintf(output, "%" PRIu32 " %" PRIu32 " %" PRIu32 "\n", a, b, c);
             break;
 
         case OPCODE_ALLOCATE:
         case OPCODE_LOAD:
-            fprintf(output, "%d %d\n", b, c);
+            fprintf(output, "%" PRIu32 " %" PRIu32 "\n", b, c);
             break;
 
         case OPCODE_FREE:
         case OPCODE_READ:
         case OPCODE_WRITE:
-            fprintf(output, "%d\n", c);
+            fprintf(output, "%" PRIu32 "\n", c);
             break;
 
         default:
