@@ -2,3 +2,88 @@
 
 This is a C implementation of the UM-32 virtual machine from the
 [2006 ICFP Programming Contest](http://boundvariable.org).
+
+## Intermediate representation
+
+For ease of debugging, I have created an intermediate representation for the
+UM-32 bytecode.
+
+The eight general-purpose registers are denoted `r0` through `r7`. The standard
+operators are denoted as follows:
+
+| Opcode | UM-32 instruction | Intermediate representation | Description |
+|:------:|:-----------------:|:---------------------------:|-------------|
+| `0x0` | Conditional move | `cmov` | register conditional move |
+| `0x1` | Array index | `getp` | heap dereference pointer |
+| `0x2` | Array amendment | `setp` | heap assign via pointer |
+| `0x3` | Addition | `add` | reigster add |
+| `0x4` | Multiplication | `mul` | register multiply |
+| `0x5` | Division | `div` | reigster divide |
+| `0x6` | Not-and | `nand` | register bitwise NAND |
+| `0x7` | Halt | `halt` | halt execution |
+| `0x8` | Allocation | `alloc` | heap allocation |
+| `0x9` | Abandonment | `free` | heap deallocation |
+| `0xa` | Output | `outb` | byte output |
+| `0xb` | Input | `inb` | byte input |
+| `0xc` | Load program | `load` | load heap object into program segment |
+| `0xd` | Orthography | `li` | register load immediate literal |
+
+Here are the first few instructions from the `sandmark.umz` profiler program,
+translated from the bytecode (left) to the intermediate representation (right):
+
+### Sample intermediate representation
+
+```asm
+080000d0: cmov  r3 r2 r0
+300000c0: add   r3 r0 r0
+d2000014: li    r1 $0x14
+d400005b: li    r2 $0x5b
+d6000035: li    r3 $0x35
+d000000d: li    r0 $0xd
+c0000030: load  r6 r0
+00000000: cmov  r0 r0 r0
+5f0000d0: div   r3 r2 r0
+300000c0: add   r3 r0 r0
+c0000031: load  r6 r1
+c0000031: load  r6 r1
+```
+
+## Utilities
+
+This project contains three utilities: `umasm`, `umdasm`, and `umvm`.
+
+### UM-32 assembler (`umasm`)
+
+I have supplied an assembler for the intermediate representation in the program
+`umasm` (perhaps pronounced "yoo masm").
+
+```
+Usage: ./umasm FILE
+```
+
+The program takes the instructions to assemble from the standard input stream
+(`stdin`) and writes the binary output to the `FILE` provided.
+
+### UM-32 disassembler (`umdasm`)
+
+I have also created a disassembler for the intermediate representation in the
+program `umdasm` (pronounced "yoom dasm").
+
+```
+Usage: ./umdasm FILE
+```
+
+The program takes the bytecode from the binary `FILE` provided and writes the
+intermediate representation of the instructions to the standard output stream
+(`stdout`).
+
+### UM-32 virtual machine (`umvm`)
+
+Finally, the main virtual machine is provided in the program `umvm`
+("yoo em vee em").
+
+```
+Usage: ./umvm FILE
+```
+
+The program executes the bytecode from the binary `FILE` provided.
