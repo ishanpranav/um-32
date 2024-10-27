@@ -8,16 +8,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "reader.h"
-#include "register.h"
 #include "segment.h"
 #include "writer.h"
+#define UM32_MACHINE_REGISTERS 8 
 #define UM32_MACHINE_HEAP_SEGMENTS 4
 #define UM32_MACHINE_STACK_WORDS 4
 
 struct Machine
 {
-    bool terminated;
-    uint32_t registers[REGISTERS_COUNT];
+    bool halted;
+    uint32_t registers[UM32_MACHINE_REGISTERS];
     uint32_t stack[UM32_MACHINE_STACK_WORDS];
     struct Segment segments[UM32_MACHINE_HEAP_SEGMENTS];
     uint32_t stackPointer;
@@ -33,4 +33,5 @@ bool machine(Machine instance, Reader reader, Writer writer);
 bool machine_load_program(Machine instance, FILE* input);
 bool machine_execute(Machine instance);
 void machine_dump(FILE* output, Machine instance);
+void machine_write_program_assembly(FILE* output, Machine instance);
 void finalize_machine(Machine instance);

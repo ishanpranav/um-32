@@ -6,8 +6,9 @@
 
 #include <inttypes.h>
 #include "machine.h"
-#define UM_MACHINE_CHUNK_SIZE 1024
-#define UM_MACHINE_MAX_SEGMENT_DUMP 16
+#include "opcode.h"
+#define UM32_MACHINE_CHUNK_SIZE 256
+#define UM32_MACHINE_MAX_SEGMENT_DUMP 16
 
 bool machine(Machine instance, Reader reader, Writer writer)
 {
@@ -16,11 +17,11 @@ bool machine(Machine instance, Reader reader, Writer writer)
         return false;
     }
 
-    instance->terminated = false;
+    instance->halted = false;
 
     memset(instance->registers, 0, sizeof instance->registers);
     memset(instance->stack, 0, sizeof instance->stack);
-    
+
     instance->stackPointer = 0;
     instance->segmentCount = 1;
     instance->instructionPointer = 0;
@@ -32,33 +33,61 @@ bool machine(Machine instance, Reader reader, Writer writer)
 
 bool machine_load_program(Machine instance, FILE* input)
 {
-    uint32_t count;
-    uint32_t chunk[UM_MACHINE_CHUNK_SIZE];
-
+    uint32_t length;
+    uint32_t chunk[UM32_MACHINE_CHUNK_SIZE];
+    
     do
     {
-        count = fread(chunk, sizeof * chunk, UM_MACHINE_CHUNK_SIZE, input);
+        length = fread(chunk, sizeof * chunk, UM32_MACHINE_CHUNK_SIZE, input);
+    
+        for (uint32_t i = 0; i < length; i++)
+        {
+            chunk[i] = __builtin_bswap32(chunk[i]);
+        }
 
-        if (!segment_add_range(instance->segments, chunk, count))
+        if (!segment_add_range(instance->segments, chunk, length))
         {
             return false;
         }
     }
-    while (count == UM_MACHINE_CHUNK_SIZE);
+    while (length == UM32_MACHINE_CHUNK_SIZE);
 
     return !ferror(input);
+}
+
+void machine_write_program_assembly(FILE* output, Machine instance)
+{
+    struct Segment segment = instance->segments[0];
+
+    fprintf(output, "#include <stdint.h>\n" "#include <stdlib.h>\n\n");
+
+    for (uint32_t i = 0; i < UM32_MACHINE_REGISTERS; i++)
+    {
+        fprintf(output, "uintptr_t r%d;\n", i);
+    }
+
+    fprintf(output, "\n");
+
+    for (uint32_t i = 0; i < segment.count; i++)
+    {
+        uint32_t word = segment.buffer[i];
+        Opcode opcode = word >> 28;
+        int a = (word >> 6) & 0x7;
+        int b = (word >> 3) & 0x7;
+        int c = word & 0x7;
+
+        fprintf(output, "%s %d %d %d\n", opcode_to_string(opcode), a, b, c);
+    }
 }
 
 bool machine_execute(Machine instance)
 {
     if (instance->instructionPointer >= instance->segments[0].count)
     {
-        instance->terminated = true;
+        instance->halted = true;
 
         return true;
     }
-
-    instance->instructionPointer++;
 
     return true;
 }
@@ -96,8 +125,8 @@ static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
 
 void machine_dump(FILE* output, Machine instance)
 {
-    fprintf(output, "Registers:%17d word(s)\n", REGISTERS_COUNT);
-    machine_dump_many(output, instance->registers, REGISTERS_COUNT);
+    fprintf(output, "Registers:%17d word(s)\n", UM32_MACHINE_REGISTERS);
+    machine_dump_many(output, instance->registers, UM32_MACHINE_REGISTERS);
     fprintf(output, "Stack:%21d word(s)\n", instance->stackPointer);
     machine_dump_many(output, instance->stack, instance->stackPointer);
     fprintf(output, "Heap:%19d segment(s)\n\n", instance->segmentCount);
@@ -109,12 +138,12 @@ void machine_dump(FILE* output, Machine instance)
         fprintf(
             output,
             "Segment %08" PRIx32 ":%10d word(s)\n", i, segment.count);
-        
+
         uint64_t count = segment.count;
 
-        if (count > UM_MACHINE_MAX_SEGMENT_DUMP)
+        if (count > UM32_MACHINE_MAX_SEGMENT_DUMP)
         {
-            count = UM_MACHINE_MAX_SEGMENT_DUMP;
+            count = UM32_MACHINE_MAX_SEGMENT_DUMP;
         }
 
         machine_dump_many(output, segment.buffer, count);

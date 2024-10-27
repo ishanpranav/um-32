@@ -62,16 +62,16 @@ int main(int count, char* args[])
         return EXIT_FAILURE;
     }
 
-    while (!um.terminated)
-    {
-        if (!machine_execute(&um))
-        {
-            finalize_machine(&um);
-            fprintf(stderr, "%s: %s\n", app, strerror(errno));
+    // while (!um.halted)
+    // {
+    //     if (!machine_execute(&um))
+    //     {
+    //         finalize_machine(&um);
+    //         fprintf(stderr, "%s: %s\n", app, strerror(errno));
         
-            return EXIT_FAILURE;
-        }
-    }
+    //         return EXIT_FAILURE;
+    //     }
+    // }
 
     machine_dump(stdout, &um);
     finalize_machine(&um);
