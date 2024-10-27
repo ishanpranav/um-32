@@ -28,10 +28,10 @@ operators are denoted as follows:
 | `0xc` | Load program | `load` | load heap object into program segment |
 | `0xd` | Orthography | `li` | load immediate literal into register |
 
+### Example
+
 Here are the first few instructions from the `sandmark.umz` profiler program,
 translated from the bytecode (left) to the intermediate representation (right):
-
-### Sample intermediate representation
 
 ```asm
 080000d0: cmov  r3 r2 r0
@@ -55,10 +55,10 @@ c0000031: load  r6 r1
 
 This project contains three utilities: `umasm`, `umdasm`, and `umvm`.
 
-### UM-32 assembler (`umasm`)
+### Assembler (`umasm`)
 
-I have supplied an assembler for the intermediate representation in the program
-`umasm` (perhaps pronounced "yoo masm").
+I have supplied a UM-32 assembler for the intermediate representation in the
+program `umasm` (perhaps pronounced "yoo masm").
 
 ```
 Usage: ./umasm FILE
@@ -67,10 +67,10 @@ Usage: ./umasm FILE
 The program takes the instructions to assemble from the standard input stream
 (`stdin`) and writes the binary output to the `FILE` provided.
 
-### UM-32 disassembler (`umdasm`)
+### Disassembler (`umdasm`)
 
-I have also created a disassembler for the intermediate representation in the
-program `umdasm` (pronounced "yoom dasm").
+I have also created a UM-32 disassembler for the intermediate representation in
+the program `umdasm` (pronounced "yoom dasm").
 
 ```
 Usage: ./umdasm FILE
@@ -80,10 +80,10 @@ The program takes the bytecode from the binary `FILE` provided and writes the
 intermediate representation of the instructions to the standard output stream
 (`stdout`).
 
-### UM-32 virtual machine (`umvm`)
+### Virtual machine (`umvm`)
 
-Finally, the main virtual machine is provided in the program `umvm`
-("yoo em vee em").
+Finally, the main UM-32 virtual machine is provided in the program `umvm` ("yoo
+em vee em").
 
 ```
 Usage: ./umvm FILE
