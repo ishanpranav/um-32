@@ -9,8 +9,6 @@
 #include "opcode.h"
 #define UM32_MACHINE_CHUNK_SIZE 256
 #define UM32_MACHINE_MAX_SEGMENT_DUMP 16
-#define machine_isolate_bits(value, length, offset) \
-    (((value) >> (offset)) & ((1u << (length)) - 1u))
 
 bool machine(Machine instance, Reader reader, Writer writer)
 {
