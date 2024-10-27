@@ -5,6 +5,7 @@
 // http://boundvariable.org
 
 #include <inttypes.h>
+#include "instruction.h"
 #include "machine.h"
 #include "opcode.h"
 #define UM32_MACHINE_CHUNK_SIZE 256
@@ -16,8 +17,6 @@ bool machine(Machine instance, Reader reader, Writer writer)
     {
         return false;
     }
-
-    instance->halted = false;
 
     memset(instance->registers, 0, sizeof instance->registers);
 
@@ -52,7 +51,7 @@ bool machine_read_program(Machine instance, FILE* input)
     return !ferror(input);
 }
 
-bool machine_write_program(Machine instance, FILE* output)
+bool machine_write_program(FILE* output, Machine instance)
 {
     struct Segment segment = instance->segments[0];
     uint32_t chunk[UM32_MACHINE_CHUNK_SIZE];
@@ -84,14 +83,12 @@ Fault machine_execute(Machine instance)
 {
     if (instance->instructionPointer >= instance->segments[0].count)
     {
-        instance->halted = true;
-
         return FAULT_NONE;
     }
 
     uint32_t a;
     uint32_t word = instance->segments[0].buffer[instance->instructionPointer];
-    uint32_t opcode = um32_machine_opcode(word);
+    uint32_t opcode = um32_instruction_opcode(word);
 
     if (opcode > OPCODES_COUNT)
     {
@@ -100,26 +97,47 @@ Fault machine_execute(Machine instance)
 
     if (opcode == OPCODE_IMMEDIATE)
     {
-        a = um32_machine_immediate_register(word);
-        instance->registers[a] = um32_machine_immediate_value(word);
+        a = um32_instruction_immediate_register(word);
+        instance->registers[a] = um32_instruction_immediate_value(word);
         instance->instructionPointer++;
 
         return FAULT_NONE;
     }
 
-    a = um32_machine_operand_a(word);
+    a = um32_instruction_operand_a(word);
 
-    uint32_t b = um32_machine_operand_b(word);
-    uint32_t c = um32_machine_operand_c(word);
+    uint32_t b = um32_instruction_operand_b(word);
+    uint32_t c = um32_instruction_operand_c(word);
 
     switch (opcode)
     {
+    case OPCODE_ADD:
+    {
+        uint32_t sum = instance->registers[b] + instance->registers[c];
+
+        instance->registers[a] = sum;
+    }
+    break;
+
     case OPCODE_CONDITIONAL_MOVE:
     {
         if (instance->registers[c])
         {
             instance->registers[a] = instance->registers[b];
         }
+    }
+    break;
+
+    case OPCODE_DIVIDE:
+    {
+        uint32_t denominator = instance->registers[c];
+
+        if (!denominator)
+        {
+            return FAULT_DIVISION_BY_ZERO;
+        }
+
+        instance->registers[a] = instance->registers[b] / denominator;
     }
     break;
 
@@ -139,6 +157,43 @@ Fault machine_execute(Machine instance)
         }
 
         instance->registers[a] = instance->segments[segment].buffer[index];
+    }
+    break;
+
+    case OPCODE_HALT: return FAULT_HALTED;
+
+    case OPCODE_MULTIPLY:
+    {
+        uint32_t product = instance->registers[b] * instance->registers[c];
+
+        instance->registers[a] = product;
+    }
+    break;
+    
+    case OPCODE_NAND:
+    {
+        uint32_t nand = ~(instance->registers[b] & instance->registers[c]);
+
+        instance->registers[a] = nand;
+    }
+    break;
+
+    case OPCODE_SET:
+    {
+        uint32_t segment = instance->registers[a];
+        uint32_t index = instance->registers[b];
+
+        if (segment >= instance->segmentCount)
+        {
+            return FAULT_INVALID_SEGMENT;
+        }
+
+        if (index >= instance->segments[segment].count)
+        {
+            return FAULT_INVALID_INDEX;
+        }
+
+        instance->segments[segment].buffer[index] = instance->registers[c];
     }
     break;
     }
@@ -181,6 +236,18 @@ static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
 
 void machine_dump(FILE* output, Machine instance)
 {
+    struct Segment program = instance->segments[0];
+
+    if (instance->instructionPointer < program.count)
+    {
+        uint32_t word = program.buffer[instance->instructionPointer];
+
+        fprintf(output, "Instruction %08" PRIx32 ":\n",
+            instance->instructionPointer);
+        instruction_write_assembly(output, word);
+        fprintf(output, "\n");
+    }
+
     fprintf(output, "Registers:%17d word(s)\n", UM32_MACHINE_REGISTERS);
     machine_dump_many(output, instance->registers, UM32_MACHINE_REGISTERS);
     fprintf(output, "Heap:%19d segment(s)\n\n", instance->segmentCount);

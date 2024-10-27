@@ -58,11 +58,13 @@ int main(int count, char* args[])
         return EXIT_FAILURE;
     }
 
-    while (!um.halted)
-    {
-        Fault fault = machine_execute(&um);
+    Fault fault;
 
-        if (fault)
+    do
+    {
+        fault = machine_execute(&um);
+
+        if (fault && fault != FAULT_HALTED)
         {
             fprintf(stderr, "%s: %s at %08" PRIx32 "\n",
                 app, fault_to_string(fault), um.instructionPointer);
@@ -72,6 +74,7 @@ int main(int count, char* args[])
             return EXIT_FAILURE;
         }
     }
+    while (!fault);
 
     machine_dump(stdout, &um);
     finalize_machine(&um);

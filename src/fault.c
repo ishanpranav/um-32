@@ -8,7 +8,9 @@
 
 static const char* FAULTS_STRINGS[FAULTS_COUNT] =
 {
-    [FAULT_NONE] = "ok",
+    [FAULT_NONE] = "terminated",
+    [FAULT_HALTED] = "stopped",
+    [FAULT_DIVISION_BY_ZERO] = "division by zero",
     [FAULT_INVALID_INDEX] = "invalid index",
     [FAULT_INVALID_INSTRUCTION] = "invalid instruction",
     [FAULT_INVALID_SEGMENT] = "invalid segment"

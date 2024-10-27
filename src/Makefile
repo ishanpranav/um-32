@@ -1,6 +1,7 @@
 CC = clang
 CFLAGS =-pedantic -Wall -Wextra
-CEXTRAS = -lum -L. -Wl,-rpath=.
+CAPP = -lum -L. -Wl,-rpath=.
+COBJ = -fPIC -c
 
 all: umasm umdasm umvm
 
@@ -8,25 +9,28 @@ um: machine
 	$(CC) $(CFLAGS) *.o -o libum.so -shared
 
 umasm: umasm.c um
-	$(CC) $(CFLAGS) $(CEXTRAS) umasm.c -o umasm
+	$(CC) $(CFLAGS) $(CAPP) umasm.c -o umasm
 
 umdasm: umdasm.c um
-	$(CC) $(CFLAGS) $(CEXTRAS) umdasm.c -o umdasm
+	$(CC) $(CFLAGS) $(CAPP) umdasm.c -o umdasm
 
 umvm: umvm.c um
-	$(CC) $(CFLAGS) $(CEXTRAS) umvm.c -o umvm
+	$(CC) $(CFLAGS) $(CAPP) umvm.c -o umvm
 
-machine: machine.h machine.c fault opcode segment reader.h writer.h
-	$(CC) $(CFLAGS) -fPIC -c machine.c
+machine: machine.h machine.c fault instruction opcode segment reader.h writer.h
+	$(CC) $(CFLAGS) $(COBJ) machine.c
 
 fault: fault.h fault.c
-	$(CC) $(CFLAGS) -fPIC -c fault.c
+	$(CC) $(CFLAGS) $(COBJ) fault.c
+
+instruction: instruction.h instruction.c
+	$(CC) $(CFLAGS) $(COBJ) instruction.c
 
 opcode: opcode.h opcode.c
-	$(CC) $(CFLAGS) -fPIC -c opcode.c
+	$(CC) $(CFLAGS) $(COBJ) opcode.c
 
 segment: segment.h segment.c
-	$(CC) $(CFLAGS) -fPIC -c segment.c
+	$(CC) $(CFLAGS) $(COBJ) segment.c
 
 clean:
 	rm -rf *.o *.so umasm umdasm umvm

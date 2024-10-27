@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include "instruction.h"
 #include "machine.h"
 #include "opcode.h"
 #define UM32_ASM_BUFFER_SIZE 256
@@ -70,7 +71,10 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            uint32_t word = um32_machine_immediate_word(opcode, a, immediate);
+            uint32_t word = um32_instruction_from_immediate(
+                opcode, 
+                a, 
+                immediate);
 
             segment_add(instance->segments, word);
         }
@@ -89,7 +93,7 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_machine_word(opcode, a, b, c));
+            segment_add(instance->segments, um32_instruction(opcode, a, b, c));
         }
         break;
 
@@ -101,7 +105,7 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_machine_word(opcode, 0, b, c));
+            segment_add(instance->segments, um32_instruction(opcode, 0, b, c));
         }
         break;
 
@@ -114,7 +118,7 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_machine_word(opcode, 0, 0, c));
+            segment_add(instance->segments, um32_instruction(opcode, 0, 0, c));
         }
         break;
 
@@ -125,7 +129,7 @@ size_t asm_read(FILE* input, Machine instance)
                 return lineNumber;
             }
 
-            segment_add(instance->segments, um32_machine_word(opcode, 0, 0, 0));
+            segment_add(instance->segments, um32_instruction(opcode, 0, 0, 0));
         }
         break;
 
@@ -166,7 +170,7 @@ int main(int count, char* args[])
     char* path = args[1];
     FILE* output = fopen(path, "wb");
 
-    if (!output || !machine_write_program(&um, output) || fclose(output) != 0)
+    if (!output || !machine_write_program(output, &um) || fclose(output) != 0)
     {
         finalize_machine(&um);
         fprintf(stderr, "%s: %s: %s\n", app, path, strerror(errno));
