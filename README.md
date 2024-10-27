@@ -11,8 +11,8 @@ UM-32 bytecode.
 The eight general-purpose registers are denoted `r0` through `r7`. The standard
 operators are denoted as follows:
 
-| Opcode | UM-32 instruction | Intermediate representation | Description |
-|:------:|:-----------------:|:---------------------------:|-------------|
+| Opcode | UM-32 instruction | Keyword | Description |
+|:------:|:-----------------:|:-------:|-------------|
 | `0x0` | Conditional move | `cmov` | register conditional move |
 | `0x1` | Array index | `getp` | heap dereference pointer |
 | `0x2` | Array amendment | `setp` | heap assign via pointer |
