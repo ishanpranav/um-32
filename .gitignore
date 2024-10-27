@@ -56,4 +56,5 @@ dkms.conf
 
 # Application
 src/um32
+src/*.um
 src/*.umz

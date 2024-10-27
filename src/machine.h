@@ -12,15 +12,12 @@
 #include "writer.h"
 #define UM32_MACHINE_REGISTERS 8 
 #define UM32_MACHINE_HEAP_SEGMENTS 4
-#define UM32_MACHINE_STACK_WORDS 4
 
 struct Machine
 {
     bool halted;
     uint32_t registers[UM32_MACHINE_REGISTERS];
-    uint32_t stack[UM32_MACHINE_STACK_WORDS];
     struct Segment segments[UM32_MACHINE_HEAP_SEGMENTS];
-    uint32_t stackPointer;
     uint32_t segmentCount;
     uint32_t instructionPointer;
     Reader reader;

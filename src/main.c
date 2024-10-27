@@ -73,7 +73,8 @@ int main(int count, char* args[])
     //     }
     // }
 
-    machine_dump(stdout, &um);
+    machine_write_program_assembly(stdout, &um);
+    // machine_dump(stdout, &um);
     finalize_machine(&um);
 
     return EXIT_SUCCESS;

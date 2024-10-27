@@ -19,7 +19,7 @@ enum Opcode
     OPCODE_WRITE = 10,
     OPCODE_READ = 11,
     OPCODE_LOAD = 12,
-    OPCODE_LONG_MOVE = 13,
+    OPCODE_IMMEDIATE = 13,
     OPCODES_COUNT
 };
 
