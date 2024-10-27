@@ -16,6 +16,7 @@
 
 struct Machine
 {
+    bool terminated;
     uint32_t registers[REGISTERS_COUNT];
     uint32_t stack[UM32_MACHINE_STACK_WORDS];
     struct Segment segments[UM32_MACHINE_HEAP_SEGMENTS];
@@ -29,6 +30,7 @@ struct Machine
 typedef struct Machine* Machine;
 
 bool machine(Machine instance, Reader reader, Writer writer);
-void machine_dump(FILE* output, Machine instance);
 bool machine_load_program(Machine instance, FILE* input);
+bool machine_execute(Machine instance);
+void machine_dump(FILE* output, Machine instance);
 void finalize_machine(Machine instance);

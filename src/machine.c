@@ -16,6 +16,8 @@ bool machine(Machine instance, Reader reader, Writer writer)
         return false;
     }
 
+    instance->terminated = false;
+
     memset(instance->registers, 0, sizeof instance->registers);
     memset(instance->stack, 0, sizeof instance->stack);
     
@@ -24,6 +26,39 @@ bool machine(Machine instance, Reader reader, Writer writer)
     instance->instructionPointer = 0;
     instance->reader = reader;
     instance->writer = writer;
+
+    return true;
+}
+
+bool machine_load_program(Machine instance, FILE* input)
+{
+    uint32_t count;
+    uint32_t chunk[UM_MACHINE_CHUNK_SIZE];
+
+    do
+    {
+        count = fread(chunk, sizeof * chunk, UM_MACHINE_CHUNK_SIZE, input);
+
+        if (!segment_add_range(instance->segments, chunk, count))
+        {
+            return false;
+        }
+    }
+    while (count == UM_MACHINE_CHUNK_SIZE);
+
+    return !ferror(input);
+}
+
+bool machine_execute(Machine instance)
+{
+    if (instance->instructionPointer >= instance->segments[0].count)
+    {
+        instance->terminated = true;
+
+        return true;
+    }
+
+    instance->instructionPointer++;
 
     return true;
 }
@@ -48,9 +83,12 @@ static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
         return;
     }
 
-    for (uint32_t i = 0; i < length; i++)
+    while (length)
     {
-        fprintf(output, "%08" PRIx32 " ", values[i]);
+        fprintf(output, "%08" PRIx32 " ", *values);
+
+        values++;
+        length--;
     }
 
     fprintf(output, "\n\n");
@@ -81,25 +119,6 @@ void machine_dump(FILE* output, Machine instance)
 
         machine_dump_many(output, segment.buffer, count);
     }
-}
-
-bool machine_load_program(Machine instance, FILE* input)
-{
-    uint32_t count;
-    uint32_t chunk[UM_MACHINE_CHUNK_SIZE];
-
-    do
-    {
-        count = fread(chunk, sizeof * chunk, UM_MACHINE_CHUNK_SIZE, input);
-
-        if (!segment_add_range(instance->segments, chunk, count))
-        {
-            return false;
-        }
-    }
-    while (count == UM_MACHINE_CHUNK_SIZE);
-
-    return !ferror(input);
 }
 
 void finalize_machine(Machine instance)
