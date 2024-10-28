@@ -18,7 +18,7 @@ bool machine(Machine instance, Reader reader, Writer writer)
         return false;
     }
 
-    if (!segment(&instance->heap))
+    if (!heap(&instance->heap))
     {
         finalize_segment(&instance->program);
 
@@ -390,5 +390,5 @@ void machine_dump(FILE* output, Machine instance)
 void finalize_machine(Machine instance)
 {
     finalize_segment(&instance->program);
-    finalize_segment(&instance->heap);
+    finalize_heap(&instance->heap);
 }

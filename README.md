@@ -3,7 +3,9 @@
 This is a C implementation of the UM-32 virtual machine from the
 [2006 ICFP Programming Contest](http://boundvariable.org).
 
-## Intermediate representation
+## Components
+
+### Intermediate representation
 
 For ease of debugging, I have created an intermediate representation for the
 UM-32 bytecode.
@@ -28,7 +30,7 @@ operators are denoted as follows:
 | `0xc` | Load program | `load` | load heap object into program segment |
 | `0xd` | Orthography | `li` | load immediate literal into register |
 
-### Example
+#### Example
 
 Here are the first few instructions from the `sandmark.umz` profiler program,
 translated from the bytecode (left) to the intermediate representation (right):
@@ -51,9 +53,19 @@ c0000031: load  r6 r1
 c0000031: load  r6 r1
 ```
 
-## Utilities
+### Shared library (`libum`)
 
-This project contains three utilities: `umasm`, `umdasm`, and `umvm`.
+The core UM-32 virtual machine is implemented in the shared library `libum.so`.
+
+| Header | Description |
+|--------|-------------|
+| `fault.h` | specifies failure conditions |
+| `heap.h`  | implements dynamic memory allocation |
+| `instruction.h` | specifies the instruction layout |
+| `machine.h` | provides the virtual machine interface |
+| `opcode.h` | specifies the standard operators |
+| `reader.h` | specifies the byte input interface |
+| `writer.h` | specifies the byte output interface |
 
 ### Assembler (`umasm`)
 

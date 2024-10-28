@@ -17,11 +17,15 @@ umdasm: umdasm.c um
 umvm: umvm.c um
 	$(CC) $(CFLAGS) $(CAPP) umvm.c -o umvm
 
-machine: machine.h machine.c fault instruction opcode segment reader.h writer.h
+machine: machine.h machine.c fault heap instruction opcode segment \
+	reader.h writer.h
 	$(CC) $(CFLAGS) $(COBJ) machine.c
 
 fault: fault.h fault.c
 	$(CC) $(CFLAGS) $(COBJ) fault.c
+
+heap: heap.h heap.c
+	$(CC) $(CFLAGS) $(COBJ) heap.c
 
 instruction: instruction.h instruction.c
 	$(CC) $(CFLAGS) $(COBJ) instruction.c

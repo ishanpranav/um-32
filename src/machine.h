@@ -8,18 +8,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fault.h"
+#include "heap.h"
 #include "reader.h"
-#include "segment.h"
 #include "writer.h"
 #define UM32_MACHINE_REGISTERS 8 
 #define UM32_MACHINE_HEAP_SEGMENTS 4
 
 struct Machine
 {
+    uint32_t instructionPointer;
     uint32_t registers[UM32_MACHINE_REGISTERS];
     struct Segment program;
-    struct Segment heap;
-    uint32_t instructionPointer;
+    struct Heap heap;
     Reader reader;
     Writer writer;
 };
