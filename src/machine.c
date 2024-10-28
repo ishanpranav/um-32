@@ -4,12 +4,10 @@
 
 // http://boundvariable.org
 
-#include <inttypes.h>
 #include "instruction.h"
 #include "machine.h"
 #include "opcode.h"
 #define UM32_MACHINE_CHUNK_SIZE 256
-#define UM32_MACHINE_MAX_DUMP 16
 
 bool machine(Machine instance, Reader reader, Writer writer)
 {
@@ -309,82 +307,6 @@ Fault machine_execute(Machine instance)
     instance->instructionPointer++;
 
     return FAULT_NONE;
-}
-
-static void machine_dump_many(FILE* output, uint32_t values[], uint32_t length)
-{
-    if (length > UM32_MACHINE_MAX_DUMP)
-    {
-        length = UM32_MACHINE_MAX_DUMP;
-    }
-
-    while (length >= 4)
-    {
-        fprintf(
-            output,
-            "%08" PRIx32 " %08" PRIx32 " %08" PRIx32 " %08" PRIx32 "\n",
-            values[0], values[1], values[2], values[3]);
-
-        values += 4;
-        length -= 4;
-    }
-
-    if (!length)
-    {
-        fprintf(output, "\n");
-
-        return;
-    }
-
-    while (length)
-    {
-        fprintf(output, "%08" PRIx32 " ", *values);
-
-        values++;
-        length--;
-    }
-
-    fprintf(output, "\n\n");
-}
-
-void machine_dump(FILE* output, Machine instance)
-{
-    struct Segment program = instance->program;
-
-    if (instance->instructionPointer < program.length)
-    {
-        uint32_t word = program.buffer[instance->instructionPointer];
-
-        fprintf(output, "Instruction %08" PRIx32 ":\n",
-            instance->instructionPointer);
-        instruction_write_assembly(output, word);
-        fprintf(output, "\n");
-    }
-
-    fprintf(output, "Registers:%17d word(s)\n", UM32_MACHINE_REGISTERS);
-    machine_dump_many(output, instance->registers, UM32_MACHINE_REGISTERS);
-    fprintf(output, "Program:%18d words(s)\n", program.length);
-    machine_dump_many(output, program.buffer, program.length);
-
-    // fprintf(output, "Heap:%20d object(s)\n\n", instance->segmentCount);
-
-    // for (uint32_t i = 0; i < instance->segmentCount; i++)
-    // {
-    //     struct Segment segment = instance->segments[i];
-
-    //     fprintf(
-    //         output,
-    //         "Segment %08" PRIx32 ":%10d word(s)\n", i, segment.count);
-
-    //     uint64_t count = segment.count;
-
-    //     if (count > UM32_MACHINE_MAX_SEGMENT_DUMP)
-    //     {
-    //         count = UM32_MACHINE_MAX_SEGMENT_DUMP;
-    //     }
-
-    //     machine_dump_many(output, segment.buffer, count);
-    // }
 }
 
 void finalize_machine(Machine instance)
