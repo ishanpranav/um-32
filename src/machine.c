@@ -169,7 +169,20 @@ Fault machine_execute(Machine instance)
     {
         uint32_t address = instance->registers[b];
         uint32_t offset = instance->registers[c];
-        uint32_t* index = heap_index(&instance->heap, address, offset);
+
+        if (!address)
+        {
+            if (offset >= instance->program.length)
+            {
+                return FAULT_INVALID_ADDRESS;
+            }
+
+            instance->registers[a] = instance->program.buffer[offset];
+
+            break;
+        }
+
+        uint32_t* index = heap_index(&instance->heap, address, offset, NULL);
 
         if (!index)
         {
@@ -186,21 +199,37 @@ Fault machine_execute(Machine instance)
     {
         uint32_t address = instance->registers[b];
         uint32_t offset = instance->registers[c];
-        uint32_t* index = heap_index(&instance->heap, address, 0);
+
+        if (!address)
+        {
+            if (offset >= instance->program.length)
+            {
+                return FAULT_INVALID_INSTRUCTION_POINTER;
+            }
+
+            instance->instructionPointer = offset;
+
+            return FAULT_NONE;
+        }
+
+        uint32_t length;
+        uint32_t* index = heap_index(&instance->heap, address, 0, &length);
 
         if (!index)
         {
             return FAULT_INVALID_ADDRESS;
         }
     
-        // segment_ensure_capacity(instance->program, );
-        // memcpy(instance->program.buffer, index, count * sizeof * index);
-
-        // instance->segments[0].count = instance->segments[segment].count;
+        if (offset >= length)
+        {
+            return FAULT_INVALID_INSTRUCTION_POINTER;
+        }
     
-        // instance->instructionPointer = index;
+        segment_ensure_capacity(&instance->program, length);
+        memcpy(instance->program.buffer, index, length * sizeof * index);
 
-        return FAULT_HALTED;
+        instance->program.length = length;
+        instance->instructionPointer = offset;
     }
     return FAULT_NONE;
 
@@ -235,7 +264,20 @@ Fault machine_execute(Machine instance)
     {
         uint32_t address = instance->registers[a];
         uint32_t offset = instance->registers[b];
-        uint32_t* index = heap_index(&instance->heap, address, offset);
+
+        if (!address)
+        {
+            if (offset >= instance->program.length)
+            {
+                return FAULT_INVALID_ADDRESS;
+            }
+
+            instance->program.buffer[offset] = instance->registers[c];
+
+            break;
+        }
+
+        uint32_t* index = heap_index(&instance->heap, address, offset, NULL);
 
         if (!index)
         {

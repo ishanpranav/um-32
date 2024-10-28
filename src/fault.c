@@ -16,6 +16,7 @@ static const char* FAULTS_STRINGS[FAULTS_COUNT] =
     [FAULT_INVALID_BYTE] = "invalid byte",
     [FAULT_INVALID_FREE] = "invalid free",
     [FAULT_INVALID_INSTRUCTION] = "invalid instruction",
+    [FAULT_INVALID_INSTRUCTION_POINTER] = "bad instruction pointer",
     [FAULT_MISSING_READER] = "missing reader",
     [FAULT_MISSING_WRITER] = "missing writer",
     [FAULT_NO_OPERATION] = "no-op",

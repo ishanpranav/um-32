@@ -67,6 +67,7 @@ static void vm_dump_raw(FILE* output, uint32_t values[], uint32_t length)
 
 void vm_dump_heap(FILE* output, Heap heap)
 {
+    vm_dump_raw(output, heap->segment.buffer, heap->segment.length);
     // fprintf(output, "Heap:%20d object(s)\n\n", instance->segmentCount);
     // for (uint32_t i = 0; i < instance->segmentCount; i++)
     // {
@@ -96,8 +97,8 @@ void vm_dump_machine(FILE* output, Machine machine)
     vm_dump_raw(output, machine->registers, UM32_MACHINE_REGISTERS);
     fprintf(output, "Program:%18" PRIu32 " words(s)\n", program.length);
     vm_dump_raw(output, program.buffer, program.length);
-    fprintf(output, "Heap:%22" PRIu32 " word(s)\n", 
-        machine->heap.segment.length);
+    fprintf(output, "Heap:%22" PRIu32 " word(s)\n",
+        machine->heap.segment.capacity);
     vm_dump_heap(output, &machine->heap);
 }
 
@@ -141,7 +142,7 @@ int main(int count, char* args[])
 
     if (fclose(input) != 0)
     {
-        finalize_machine(&um);        
+        finalize_machine(&um);
         fprintf(stderr, "%s: %s: %s\n", app, path, strerror(errno));
 
         return EXIT_FAILURE;
@@ -153,20 +154,16 @@ int main(int count, char* args[])
     {
         fault = machine_execute(&um);
 
-        if (fault)
+        if (fault && um32_fault_is_stopped(fault))
         {
             fprintf(stderr, "%s: %s\n", path, fault_to_string(fault));
-        
-            if (fault != FAULT_HALTED && fault != FAULT_TERMINATED)
-            {
-                vm_dump_machine(stderr, &um);
-                finalize_machine(&um);
-            
-                return EXIT_FAILURE;
-            }
+            vm_dump_machine(stderr, &um);
+            finalize_machine(&um);
+
+            return EXIT_FAILURE;
         }
-    }
-    while (fault != FAULT_TERMINATED);
+    } 
+    while (um32_fault_is_stopped(fault));
 
     fprintf(stdout, "%s: %s\n", path, fault_to_string(fault));
     vm_dump_machine(stdout, &um);

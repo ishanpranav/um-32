@@ -4,6 +4,9 @@
 
 // http://boundvariable.org
 
+#define um32_fault_is_stopped(fault) \
+    ((fault) != FAULT_HALTED && (fault) != FAULT_TERMINATED)
+
 enum Fault
 {
     FAULT_NONE = 0,
@@ -14,6 +17,7 @@ enum Fault
     FAULT_INVALID_BYTE,
     FAULT_INVALID_FREE,
     FAULT_INVALID_INSTRUCTION,
+    FAULT_INVALID_INSTRUCTION_POINTER,
     FAULT_MISSING_READER,
     FAULT_MISSING_WRITER,
     FAULT_NO_OPERATION,
