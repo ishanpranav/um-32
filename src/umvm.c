@@ -130,10 +130,19 @@ int main(int count, char* args[])
         return EXIT_FAILURE;
     }
 
-    if (!machine_read_program(&um, input) || fclose(input) != 0)
+    if (!machine_read_program(&um, input))
+    {
+        fclose(input);
+        finalize_machine(&um);
+        fprintf(stderr, "%s: %s\n", app, strerror(errno));
+
+        return EXIT_FAILURE;
+    }
+
+    if (fclose(input) != 0)
     {
         finalize_machine(&um);        
-        fprintf(stderr, "%s: %s\n", app, strerror(errno));
+        fprintf(stderr, "%s: %s: %s\n", app, path, strerror(errno));
 
         return EXIT_FAILURE;
     }
