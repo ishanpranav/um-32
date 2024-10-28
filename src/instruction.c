@@ -10,13 +10,15 @@
 
 void instruction_write_assembly(FILE* output, uint32_t word)
 {
+    uint32_t a;
     uint32_t opcode = um32_instruction_opcode(word);
 
     fprintf(output, "%08" PRIx32 ": %-5s ", word, opcode_to_string(opcode));
 
     if (opcode == OPCODE_IMMEDIATE)
     {
-        uint32_t a = um32_instruction_immediate_register(word);
+        a = um32_instruction_immediate_register(word);
+        
         uint32_t immediate = um32_instruction_immediate_value(word);
 
         fprintf(output, "r%d $0x%" PRIx32 "\n", a, immediate);
@@ -24,7 +26,8 @@ void instruction_write_assembly(FILE* output, uint32_t word)
         return;
     }
 
-    uint32_t a = um32_instruction_operand_a(word);
+    a = um32_instruction_operand_a(word);
+    
     uint32_t b = um32_instruction_operand_b(word);
     uint32_t c = um32_instruction_operand_c(word);
 
