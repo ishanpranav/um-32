@@ -96,7 +96,7 @@ void vm_dump_machine(FILE* output, Machine machine)
     vm_dump_raw(output, machine->registers, UM32_MACHINE_REGISTERS);
     fprintf(output, "Program:%18" PRIu32 " words(s)\n", program.length);
     vm_dump_raw(output, program.buffer, program.length);
-    fprintf(output, "Heap:%20" PRIu32 " word(s)", 
+    fprintf(output, "Heap:%22" PRIu32 " word(s)\n", 
         machine->heap.segment.length);
     vm_dump_heap(output, &machine->heap);
 }
