@@ -126,26 +126,15 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_ALLOCATE:
     {
-        // uint32_t capacity = instance->registers[c];
+        uint32_t capacity = instance->registers[c];
+        uint32_t address = heap_allocate(&instance->heap, capacity);
 
-        // if (instance->segmentCount >= UM32_MACHINE_HEAP_SEGMENTS)
-        // {
-        //     return FAULT_OUT_OF_MEMORY;
-        // }
+        if (!address)
+        {
+            return FAULT_OUT_OF_MEMORY;
+        }
 
-        // bool result = segment_from_capacity(
-        //     instance->segments + instance->segmentCount,
-        //     capacity);
-
-        // if (!result)
-        // {
-        //     return FAULT_OUT_OF_MEMORY;
-        // }
-
-        // instance->registers[b] = instance->segmentCount;
-        // instance->segmentCount++;
-
-        return FAULT_OUT_OF_MEMORY;
+        instance->registers[b] = address;
     }
     break;
 
@@ -170,36 +159,24 @@ Fault machine_execute(Machine instance)
     break;
 
     case OPCODE_FREE:
-    {
-        // uint32_t segment = instance->registers[c];
-
-        // if (segment >= instance->segmentCount)
-        // {
-        //     return FAULT_INVALID_SEGMENT;
-        // }
-
-        // finalize_segment(instance->segments + segment);
-    }
-    break;
+        if (!heap_free(&instance->heap, instance->registers[c]))
+        {
+            return FAULT_INVALID_FREE;
+        }
+        break;
 
     case OPCODE_GET:
     {
-        // uint32_t segment = instance->registers[b];
-        // uint32_t index = instance->registers[c];
+        uint32_t address = instance->registers[b];
+        uint32_t offset = instance->registers[c];
+        uint32_t* index = heap_index(&instance->heap, address, offset);
 
-        // if (segment >= instance->segmentCount)
-        // {
-        //     return FAULT_INVALID_SEGMENT;
-        // }
+        if (!index)
+        {
+            return FAULT_INVALID_ADDRESS;
+        }
 
-        // if (index >= instance->segments[segment].count)
-        // {
-        //     return FAULT_INVALID_INDEX;
-        // }
-
-        // instance->registers[a] = instance->segments[segment].buffer[index];
-
-        return FAULT_INVALID_INDEX;
+        instance->registers[a] = *index;
     }
     break;
 
@@ -207,35 +184,23 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_LOAD:
     {
-        // uint32_t segment = instance->registers[b];
-        // uint32_t index = instance->registers[c];
+        uint32_t address = instance->registers[b];
+        uint32_t offset = instance->registers[c];
+        uint32_t* index = heap_index(&instance->heap, address, 0);
 
-        // if (segment >= instance->segmentCount)
-        // {
-        //     return FAULT_INVALID_SEGMENT;
-        // }
+        if (!index)
+        {
+            return FAULT_INVALID_ADDRESS;
+        }
+    
+        // segment_ensure_capacity(instance->program, );
+        // memcpy(instance->program.buffer, index, count * sizeof * index);
 
-        // uint32_t count = instance->segments[segment].count;
-
-        // if (index >= count)
-        // {
-        //     return FAULT_INVALID_INDEX;
-        // }
-
-        // if (segment)
-        // {
-        //     segment_ensure_capacity(instance->segments, count);
-        //     memcpy(
-        //         instance->segments[0].buffer,
-        //         instance->segments[segment].buffer,
-        //         count * sizeof * instance->segments[0].buffer);
-
-        //     instance->segments[0].count = instance->segments[segment].count;
-        // }
-
+        // instance->segments[0].count = instance->segments[segment].count;
+    
         // instance->instructionPointer = index;
 
-        return FAULT_INVALID_INDEX;
+        return FAULT_HALTED;
     }
     return FAULT_NONE;
 
@@ -268,22 +233,16 @@ Fault machine_execute(Machine instance)
 
     case OPCODE_SET:
     {
-        // uint32_t segment = instance->registers[a];
-        // uint32_t index = instance->registers[b];
+        uint32_t address = instance->registers[a];
+        uint32_t offset = instance->registers[b];
+        uint32_t* index = heap_index(&instance->heap, address, offset);
 
-        // if (segment >= instance->segmentCount)
-        // {
-        //     return FAULT_INVALID_SEGMENT;
-        // }
+        if (!index)
+        {
+            return FAULT_INVALID_ADDRESS;
+        }
 
-        // if (index >= instance->segments[segment].count)
-        // {
-        //     return FAULT_INVALID_INDEX;
-        // }
-
-        // instance->segments[segment].buffer[index] = instance->registers[c];
-
-        return FAULT_INVALID_INDEX;
+        *index = instance->registers[c];
     }
     break;
 

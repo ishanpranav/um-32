@@ -4,6 +4,7 @@
 
 // http://boundvariable.org
 
+#include <stdlib.h>
 #include "heap.h"
 
 bool heap(Heap instance)
@@ -13,6 +14,21 @@ bool heap(Heap instance)
         return false;
     }
 
+    return true;
+}
+
+uint32_t heap_allocate(Heap instance, uint32_t capacity)
+{
+    return 0;
+}
+
+uint32_t* heap_index(Heap instance, uint32_t address, uint32_t offset)
+{
+    return NULL;
+}
+
+bool heap_free(Heap instance, uint32_t address)
+{
     return true;
 }
 
