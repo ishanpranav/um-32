@@ -6,9 +6,11 @@
 
 #include <errno.h>
 #include <inttypes.h>
+#include <signal.h>
 #include "instruction.h"
 #include "machine.h"
 #define UM32_VM_MAX_DUMP 16
+#define UM32_VM_DEBUG
 
 struct Machine um;
 
@@ -68,6 +70,7 @@ static void vm_dump_raw(FILE* output, uint32_t values[], uint32_t length)
 void vm_dump_heap(FILE* output, Heap heap)
 {
     vm_dump_raw(output, heap->segment.buffer, heap->segment.length);
+    
     // fprintf(output, "Heap:%20d object(s)\n\n", instance->segmentCount);
     // for (uint32_t i = 0; i < instance->segmentCount; i++)
     // {
@@ -102,8 +105,18 @@ void vm_dump_machine(FILE* output, Machine machine)
     vm_dump_heap(output, &machine->heap);
 }
 
+static void vm_handle_interrupt()
+{
+    fprintf(stdout, "\nProcess terminating with signal %d (SIGINT)\n", SIGINT);
+    vm_dump_machine(stderr, &um);
+    finalize_machine(&um);
+    exit(128 + SIGINT);
+}
+
 int main(int count, char* args[])
 {
+    signal(SIGINT, vm_handle_interrupt);
+
     char* app = args[0];
 
     if (count < 2)
@@ -165,8 +178,11 @@ int main(int count, char* args[])
     } 
     while (um32_fault_is_stopped(fault));
 
-    fprintf(stdout, "%s: %s\n", path, fault_to_string(fault));
-    vm_dump_machine(stdout, &um);
+#ifdef UM32_VM_DEBUG
+        fprintf(stdout, "%s: %s\n", path, fault_to_string(fault));
+        vm_dump_machine(stdout, &um);
+#endif
+    
     finalize_machine(&um);
 
     return EXIT_SUCCESS;
