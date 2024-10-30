@@ -5,6 +5,7 @@
 // http://boundvariable.org
 
 #include "segment.h"
+#include "heap_block.h"
 
 struct Heap
 {
@@ -21,6 +22,9 @@ uint32_t* heap_index(
     uint32_t address, 
     uint32_t offset, 
     uint32_t* length);
+
+void heap_first(HeapBlock result);
+bool heap_next(HeapBlock result, Heap instance);
 
 bool heap_free(Heap instance, uint32_t address);
 void finalize_heap(Heap instance);

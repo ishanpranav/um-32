@@ -69,17 +69,34 @@ static void vm_dump_raw(FILE* output, uint32_t values[], uint32_t length)
 
 void vm_dump_heap(FILE* output, Heap heap)
 {
-    vm_dump_raw(output, heap->segment.buffer, heap->segment.length);
+    struct HeapBlock it;
+    uint32_t allocated = 0;
+    uint32_t freed = 0;
+    uint32_t allocatedSize = 0;
+    uint32_t freedSize = 0;
+
+    for (heap_first(&it); heap_next(&it, heap); )
+    {
+        if (it.allocated) 
+        {
+            allocated++;
+            allocatedSize += it.capacity;
+        }
+        else 
+        {
+            freed++;
+            freedSize += it.capacity;
+        }
+    }
     
-    // fprintf(output, "Heap:%20d object(s)\n\n", instance->segmentCount);
-    // for (uint32_t i = 0; i < instance->segmentCount; i++)
-    // {
-    //     struct Segment segment = instance->segments[i];
-    //     fprintf(
-    //         output,
-    //         "Segment %08" PRIx32 ":%10d word(s)\n", i, segment.count);
-    //     machine_dump_many(output, segment.buffer, segment.count);
-    // }
+    fprintf(output, 
+        "Heap:%22" PRIu32 " word(s)\n"
+        " %8" PRId32 " alloc'ed, %8" PRId32 " free'd\n"
+        " %19.2lf%% fragmentation\n", 
+        heap->segment.capacity,
+        allocated, freed,
+        (double)freedSize * 100.0 / (allocatedSize + freedSize));
+    vm_dump_raw(output, heap->segment.buffer, heap->segment.length);
 }
 
 void vm_dump_machine(FILE* output, Machine machine)
@@ -100,14 +117,12 @@ void vm_dump_machine(FILE* output, Machine machine)
     vm_dump_raw(output, machine->registers, UM32_MACHINE_REGISTERS);
     fprintf(output, "Program:%18" PRIu32 " words(s)\n", program.length);
     vm_dump_raw(output, program.buffer, program.length);
-    fprintf(output, "Heap:%22" PRIu32 " word(s)\n",
-        machine->heap.segment.capacity);
     vm_dump_heap(output, &machine->heap);
 }
 
 static void vm_handle_interrupt()
 {
-    fprintf(stdout, "\nProcess terminating with signal %d (SIGINT)\n", SIGINT);
+    printf("\nProcess terminating with signal %d (SIGINT)\n", SIGINT);
     vm_dump_machine(stderr, &um);
     finalize_machine(&um);
     exit(128 + SIGINT);
@@ -179,7 +194,7 @@ int main(int count, char* args[])
     while (um32_fault_is_stopped(fault));
 
 #ifdef UM32_VM_DEBUG
-        fprintf(stdout, "%s: %s\n", path, fault_to_string(fault));
+        printf("%s: %s\n", path, fault_to_string(fault));
         vm_dump_machine(stdout, &um);
 #endif
     

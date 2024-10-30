@@ -10,9 +10,15 @@
 #include "segment.h"
 #define UM_SEGMENT_DEFAULT 4
 
-bool segment(Segment instance)
+bool segment(Segment instance, uint32_t capacity)
 {
     instance->length = 0;
+
+    if (capacity < UM_SEGMENT_DEFAULT)
+    {
+        capacity = UM_SEGMENT_DEFAULT;
+    }
+    
     instance->capacity = UM_SEGMENT_DEFAULT;
     instance->buffer = malloc(UM_SEGMENT_DEFAULT * sizeof * instance->buffer);
 

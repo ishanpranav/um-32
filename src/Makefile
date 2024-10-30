@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS =-pedantic -Wall -Wextra
+CFLAGS =-O3 -pedantic -Wall -Wextra
 CAPP = -lum -L. -Wl,-rpath=.
 COBJ = -fPIC -c
 

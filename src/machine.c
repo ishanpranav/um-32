@@ -11,7 +11,7 @@
 
 bool machine(Machine instance, Reader reader, Writer writer)
 {
-    if (!segment(&instance->program))
+    if (!segment(&instance->program, 0))
     {
         return false;
     }
